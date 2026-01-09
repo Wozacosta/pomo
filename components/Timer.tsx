@@ -55,12 +55,7 @@ export default function Timer() {
       // Play notification sound using Web Audio API
       try {
         const AudioContextClass =
-          window.AudioContext ||
-          (
-            window as typeof AudioContext & {
-              webkitAudioContext?: typeof AudioContext;
-            }
-          ).webkitAudioContext;
+          window.AudioContext || (window as any).webkitAudioContext;
         if (!AudioContextClass) return;
         const audioContext = new AudioContextClass();
         const oscillator = audioContext.createOscillator();
