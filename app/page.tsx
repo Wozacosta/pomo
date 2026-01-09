@@ -1,27 +1,27 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Timer from '@/components/Timer';
-import Sidebar from '@/components/Sidebar';
-import MusicPanel from '@/components/MusicPanel';
-import Report from '@/components/Report';
-import { useThemeStore } from '@/store/theme-store';
+import { useState, useEffect } from "react";
+import Timer from "@/components/Timer";
+import Sidebar from "@/components/Sidebar";
+import MusicPanel from "@/components/MusicPanel";
+import Report from "@/components/Report";
+import { useThemeStore } from "@/store/theme-store";
 
-type View = 'timer' | 'report';
+type View = "timer" | "report";
 
 export default function Home() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [currentView, setCurrentView] = useState<View>('timer');
+  const [currentView, setCurrentView] = useState<View>("timer");
   const { theme, setTheme } = useThemeStore();
 
   // Sync theme changes
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       const root = document.documentElement;
-      if (theme === 'dark') {
-        root.classList.add('dark');
+      if (theme === "dark") {
+        root.classList.add("dark");
       } else {
-        root.classList.remove('dark');
+        root.classList.remove("dark");
       }
     }
   }, [theme]);
@@ -62,21 +62,21 @@ export default function Home() {
             {/* Navigation */}
             <nav className="flex gap-2">
               <button
-                onClick={() => setCurrentView('timer')}
+                onClick={() => setCurrentView("timer")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'timer'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  currentView === "timer"
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
                 Timer
               </button>
               <button
-                onClick={() => setCurrentView('report')}
+                onClick={() => setCurrentView("report")}
                 className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  currentView === 'report'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  currentView === "report"
+                    ? "bg-blue-600 text-white"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                 }`}
               >
                 Report
@@ -85,11 +85,11 @@ export default function Home() {
           </div>
 
           <button
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+            onClick={() => setTheme(theme === "light" ? "dark" : "light", true)}
             className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
             aria-label="Toggle theme"
           >
-            {theme === 'light' ? (
+            {theme === "light" ? (
               <svg
                 className="w-6 h-6 text-zinc-600 dark:text-zinc-400"
                 fill="none"
@@ -123,7 +123,7 @@ export default function Home() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto">
-          {currentView === 'timer' ? (
+          {currentView === "timer" ? (
             <div className="flex items-center justify-center h-full">
               <Timer />
             </div>

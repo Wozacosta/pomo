@@ -11,7 +11,7 @@ A simple, elegant Pomodoro timer built with Next.js 16, featuring concentration 
 - ✅ **Notification Sound** - Web Audio API beep when timer completes
 - ✅ **Music Links Sidebar** - Curated links to concentration music (NTS, Do You World, YouTube)
 - ✅ **localStorage Persistence** - All timer data saved locally
-- ✅ **Dark/Light Mode** - Toggle between themes
+- ✅ **Dark/Light Mode** - Automatic system preference detection with manual toggle override
 - ✅ **Simple Stats** - Total completed, current streak, longest streak
 - ✅ **Basic Timeline** - Recent sessions display
 
@@ -43,19 +43,19 @@ pomodoro-timer/
 
 ### Prerequisites
 
-- Node.js >= 20.9.0 (recommended) or >= 18.18.2 (minimum)
-- npm or yarn
+- Node.js >= 20.9.0 (required for Next.js 16)
+- pnpm >= 10.26.2 (package manager)
 
 ### Installation
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### Development
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
@@ -63,9 +63,28 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ### Build
 
 ```bash
-npm run build
-npm start
+pnpm build
+pnpm start
 ```
+
+### Using pnpm
+
+This project uses pnpm as the package manager. If you don't have pnpm installed:
+
+```bash
+# Install pnpm globally
+npm install -g pnpm
+
+# Or use Corepack (built into Node.js 16+)
+corepack enable
+corepack prepare pnpm@10.26.2 --activate
+```
+
+**Why pnpm?**
+- Faster installation and less disk space usage
+- Strict dependency resolution (prevents phantom dependencies)
+- Better monorepo support
+- Lockfile is committed for reproducible builds
 
 ## Usage
 
@@ -74,7 +93,7 @@ npm start
 3. **Reset:** Reset the timer to the default duration
 4. **Music Links:** Browse concentration music in the right panel
 5. **Stats:** View your productivity stats in the left sidebar
-6. **Dark Mode:** Toggle theme using the sun/moon icon in the header
+5. **Dark Mode:** Automatically follows system preference, or toggle manually using the sun/moon icon in the header
 
 ## Future Enhancements (Phase 2)
 

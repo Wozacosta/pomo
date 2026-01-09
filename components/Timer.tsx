@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useTimerStore } from '@/store/timer-store';
+import { useEffect, useState } from "react";
+import { useTimerStore } from "@/store/timer-store";
 
 export default function Timer() {
   const {
@@ -11,7 +11,7 @@ export default function Timer() {
     duration,
     timerType,
     currentTaskName,
-    currentTaskId,
+
     sessions,
     setCurrentTask,
     tasks,
@@ -22,11 +22,11 @@ export default function Timer() {
     setTimerType,
     tick,
   } = useTimerStore();
-  
-  const completedSessionsCount = sessions.filter(s => s.completed).length;
-  
+
+  const completedSessionsCount = sessions.filter((s) => s.completed).length;
+
   const [isEditingTask, setIsEditingTask] = useState(false);
-  const [taskInput, setTaskInput] = useState('');
+  const [taskInput, setTaskInput] = useState("");
 
   // Timer tick effect
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function Timer() {
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
   // Calculate progress percentage
@@ -54,23 +54,34 @@ export default function Timer() {
     if (currentTime === 0 && isRunning) {
       // Play notification sound using Web Audio API
       try {
-        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const AudioContextClass =
+          window.AudioContext ||
+          (
+            window as typeof AudioContext & {
+              webkitAudioContext?: typeof AudioContext;
+            }
+          ).webkitAudioContext;
+        if (!AudioContextClass) return;
+        const audioContext = new AudioContextClass();
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
-        
+
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
-        
+
         oscillator.frequency.value = 800; // Higher pitch
-        oscillator.type = 'sine';
-        
+        oscillator.type = "sine";
+
         gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-        
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.01,
+          audioContext.currentTime + 0.5,
+        );
+
         oscillator.start(audioContext.currentTime);
         oscillator.stop(audioContext.currentTime + 0.5);
-      } catch (error) {
-        console.log('Timer completed! (audio not available)');
+      } catch {
+        console.log("Timer completed! (audio not available)");
       }
     }
   }, [currentTime, isRunning]);
@@ -86,14 +97,16 @@ export default function Timer() {
   const handleTaskSubmit = () => {
     if (taskInput.trim()) {
       // Check if task exists
-      const existingTask = tasks.find(t => t.name.toLowerCase() === taskInput.trim().toLowerCase());
+      const existingTask = tasks.find(
+        (t) => t.name.toLowerCase() === taskInput.trim().toLowerCase(),
+      );
       if (existingTask) {
         setCurrentTask(existingTask.id, existingTask.name);
       } else {
         // Quick entry - just set the name
         setCurrentTask(undefined, taskInput.trim());
       }
-      setTaskInput('');
+      setTaskInput("");
       setIsEditingTask(false);
     }
   };
@@ -102,7 +115,7 @@ export default function Timer() {
     <div className="flex flex-col items-center justify-center space-y-8 p-8">
       {/* Timer Type Selection */}
       <div className="flex gap-2 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
-        {(['work', 'shortBreak', 'longBreak'] as const).map((type) => (
+        {(["work", "shortBreak", "longBreak"] as const).map((type) => (
           <button
             key={type}
             onClick={() => {
@@ -110,11 +123,15 @@ export default function Timer() {
             }}
             className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
               timerType === type
-                ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-md'
-                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
+                ? "bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-md"
+                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
             }`}
           >
-            {type === 'work' ? 'Pomodoro' : type === 'shortBreak' ? 'Short Break' : 'Long Break'}
+            {type === "work"
+              ? "Pomodoro"
+              : type === "shortBreak"
+                ? "Short Break"
+                : "Long Break"}
           </button>
         ))}
       </div>
@@ -146,7 +163,7 @@ export default function Timer() {
             strokeLinecap="round"
           />
         </svg>
-        
+
         {/* Time Display */}
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="text-6xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
@@ -164,10 +181,10 @@ export default function Timer() {
               value={taskInput}
               onChange={(e) => setTaskInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') handleTaskSubmit();
-                if (e.key === 'Escape') {
+                if (e.key === "Enter") handleTaskSubmit();
+                if (e.key === "Escape") {
                   setIsEditingTask(false);
-                  setTaskInput('');
+                  setTaskInput("");
                 }
               }}
               placeholder="What are you focusing on?"
@@ -231,10 +248,10 @@ export default function Timer() {
             onClick={isPaused ? resumeTimer : pauseTimer}
             className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl active:scale-95"
           >
-            {isPaused ? 'Resume' : 'Pause'}
+            {isPaused ? "Resume" : "Pause"}
           </button>
         )}
-        
+
         <button
           onClick={resetTimer}
           className="px-10 py-3 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-50 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg active:scale-95"
