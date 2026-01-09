@@ -47,7 +47,7 @@ export default function MusicPanel() {
     : links.filter(link => link.category === selectedCategory);
 
   return (
-    <div className="h-full p-6 space-y-4">
+    <div className="h-full p-6 space-y-5">
       <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Concentration Music</h2>
 
       {/* Category Filter */}
@@ -56,9 +56,9 @@ export default function MusicPanel() {
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
               selectedCategory === category
-                ? 'bg-blue-600 text-white'
+                ? 'bg-blue-600 text-white shadow-md'
                 : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
             }`}
           >
@@ -75,16 +75,16 @@ export default function MusicPanel() {
             href={link.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
+            className="block p-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all group"
           >
-            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{link.title}</div>
+            <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{link.title}</div>
             <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">{link.category}</div>
           </a>
         ))}
       </div>
 
       {/* Add Custom Link (placeholder for future) */}
-      <button className="w-full p-3 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-lg text-sm text-zinc-600 dark:text-zinc-400 hover:border-blue-600 dark:hover:border-blue-400 transition-colors">
+      <button className="w-full p-3 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:border-blue-600 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all">
         + Add Custom Link
       </button>
     </div>

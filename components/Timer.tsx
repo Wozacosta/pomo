@@ -101,17 +101,17 @@ export default function Timer() {
   return (
     <div className="flex flex-col items-center justify-center space-y-8 p-8">
       {/* Timer Type Selection */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
         {(['work', 'shortBreak', 'longBreak'] as const).map((type) => (
           <button
             key={type}
             onClick={() => {
               setTimerType(type);
             }}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
               timerType === type
-                ? 'bg-blue-600 text-white'
-                : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-md'
+                : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200'
             }`}
           >
             {type === 'work' ? 'Pomodoro' : type === 'shortBreak' ? 'Short Break' : 'Long Break'}
@@ -120,43 +120,43 @@ export default function Timer() {
       </div>
 
       {/* Circular Progress */}
-      <div className="relative w-64 h-64">
-        <svg className="transform -rotate-90 w-64 h-64">
+      <div className="relative w-72 h-72">
+        <svg className="transform -rotate-90 w-72 h-72 drop-shadow-lg">
           {/* Background circle */}
           <circle
-            cx="128"
-            cy="128"
-            r="120"
+            cx="144"
+            cy="144"
+            r="135"
             stroke="currentColor"
-            strokeWidth="8"
+            strokeWidth="10"
             fill="none"
             className="text-zinc-200 dark:text-zinc-800"
           />
           {/* Progress circle */}
           <circle
-            cx="128"
-            cy="128"
-            r="120"
+            cx="144"
+            cy="144"
+            r="135"
             stroke="currentColor"
-            strokeWidth="8"
+            strokeWidth="10"
             fill="none"
-            strokeDasharray={`${2 * Math.PI * 120}`}
-            strokeDashoffset={`${2 * Math.PI * 120 * (1 - progress / 100)}`}
-            className="text-blue-600 dark:text-blue-400 transition-all duration-1000 ease-linear"
+            strokeDasharray={`${2 * Math.PI * 135}`}
+            strokeDashoffset={`${2 * Math.PI * 135 * (1 - progress / 100)}`}
+            className="text-blue-600 dark:text-blue-400 transition-all duration-1000 ease-linear drop-shadow-md"
             strokeLinecap="round"
           />
         </svg>
         
         {/* Time Display */}
         <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-5xl font-bold text-zinc-900 dark:text-zinc-50">
+          <div className="text-6xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
             {formatTime(currentTime)}
           </div>
         </div>
       </div>
 
       {/* Current Task/Session Info */}
-      <div className="text-center space-y-1">
+      <div className="text-center space-y-2 min-w-[300px]">
         {isEditingTask ? (
           <div className="flex items-center gap-2">
             <input
@@ -171,42 +171,44 @@ export default function Timer() {
                 }
               }}
               placeholder="What are you focusing on?"
-              className="px-3 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-lg text-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               autoFocus
             />
             <button
               onClick={handleTaskSubmit}
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm hover:bg-blue-700"
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-all shadow-md active:scale-95"
             >
               Save
             </button>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-2">
             {completedSessionsCount > 0 && (
-              <div className="text-sm text-zinc-600 dark:text-zinc-400">
+              <div className="text-sm font-medium text-zinc-500 dark:text-zinc-500">
                 #{completedSessionsCount}
               </div>
             )}
             {currentTaskName ? (
               <>
-                <div className="text-lg font-medium text-zinc-900 dark:text-zinc-50">
+                <div className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl inline-block">
                   {currentTaskName}
                 </div>
-                <button
-                  onClick={() => {
-                    setIsEditingTask(true);
-                    setTaskInput(currentTaskName);
-                  }}
-                  className="text-xs text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50"
-                >
-                  Edit
-                </button>
+                <div>
+                  <button
+                    onClick={() => {
+                      setIsEditingTask(true);
+                      setTaskInput(currentTaskName);
+                    }}
+                    className="text-xs text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
+                  >
+                    Edit
+                  </button>
+                </div>
               </>
             ) : (
               <button
                 onClick={() => setIsEditingTask(true)}
-                className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50"
+                className="text-sm text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl"
               >
                 + Add focus task
               </button>
@@ -216,18 +218,18 @@ export default function Timer() {
       </div>
 
       {/* Controls */}
-      <div className="flex gap-4">
+      <div className="flex gap-3">
         {!isRunning ? (
           <button
             onClick={handleStart}
-            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl active:scale-95"
           >
             Start
           </button>
         ) : (
           <button
             onClick={isPaused ? resumeTimer : pauseTimer}
-            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+            className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl active:scale-95"
           >
             {isPaused ? 'Resume' : 'Pause'}
           </button>
@@ -235,7 +237,7 @@ export default function Timer() {
         
         <button
           onClick={resetTimer}
-          className="px-8 py-3 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-50 rounded-lg font-medium transition-colors"
+          className="px-10 py-3 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-50 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg active:scale-95"
         >
           Reset
         </button>

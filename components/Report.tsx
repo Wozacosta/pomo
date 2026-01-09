@@ -87,7 +87,7 @@ export default function Report() {
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Report</h2>
 
       {/* Chart */}
-      <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
+      <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2">
             {allTasks.map((task, idx) => (
@@ -173,38 +173,38 @@ export default function Report() {
       </div>
 
       {/* Summary Table */}
-      <div className="bg-white dark:bg-zinc-800 rounded-lg p-6">
+      <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Summary</h3>
         </div>
-        <div className="space-y-2">
-          <div className="grid grid-cols-2 gap-4 pb-2 border-b border-zinc-200 dark:border-zinc-700">
-            <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400">PROJECT</div>
-            <div className="text-sm font-medium text-zinc-600 dark:text-zinc-400 text-right">TIME (HH:MM)</div>
+        <div className="space-y-1">
+          <div className="grid grid-cols-2 gap-4 pb-3 border-b-2 border-zinc-200 dark:border-zinc-700">
+            <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">PROJECT</div>
+            <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 text-right">TIME (HH:MM)</div>
           </div>
           {Object.entries(taskTotals)
             .sort(([, a], [, b]) => b - a)
             .map(([task, totalMinutes]) => (
               <div
                 key={task}
-                className="grid grid-cols-2 gap-4 py-2 border-b border-zinc-100 dark:border-zinc-700"
+                className="grid grid-cols-2 gap-4 py-3 border-b border-zinc-100 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700/50 rounded-lg px-2 transition-colors"
               >
                 <div className="flex items-center gap-2">
                   <div
-                    className="w-3 h-3 rounded"
+                    className="w-3 h-3 rounded shadow-sm"
                     style={{
                       backgroundColor: `hsl(${(allTasks.indexOf(task) * 360) / Math.max(allTasks.length, 1)}, 70%, 50%)`,
                     }}
                   />
-                  <span className="text-sm text-zinc-900 dark:text-zinc-50">{task}</span>
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{task}</span>
                 </div>
-                <div className="text-sm text-zinc-900 dark:text-zinc-50 text-right">
+                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 text-right">
                   {formatTime(totalMinutes)}
                 </div>
               </div>
             ))}
           {Object.keys(taskTotals).length === 0 && (
-            <div className="py-4 text-center text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="py-8 text-center text-sm text-zinc-500 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
               No data yet. Complete some Pomodoros to see your report!
             </div>
           )}

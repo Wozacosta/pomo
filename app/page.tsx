@@ -14,15 +14,20 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<View>('timer');
   const { theme, setTheme } = useThemeStore();
 
-  // Initialize theme on mount
+  // Sync theme changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      document.documentElement.classList.toggle('dark', theme === 'dark');
+      const root = document.documentElement;
+      if (theme === 'dark') {
+        root.classList.add('dark');
+      } else {
+        root.classList.remove('dark');
+      }
     }
   }, [theme]);
 
   return (
-    <div className="flex h-screen bg-white dark:bg-zinc-900">
+    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950">
       {/* Left Sidebar - Timer List & Stats */}
       <Sidebar
         isCollapsed={sidebarCollapsed}
@@ -30,9 +35,9 @@ export default function Home() {
       />
 
       {/* Main Content - Timer */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col bg-white dark:bg-zinc-900">
         {/* Header with Navigation and Theme Toggle */}
-        <header className="border-b border-zinc-200 dark:border-zinc-800 p-4 flex justify-between items-center">
+        <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 flex justify-between items-center shadow-sm">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -129,7 +134,7 @@ export default function Home() {
       </div>
 
       {/* Right Panel - Music Links */}
-      <div className="w-80 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-y-auto">
+      <div className="w-80 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-y-auto shadow-lg">
         <MusicPanel />
       </div>
     </div>
