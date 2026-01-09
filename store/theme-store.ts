@@ -18,10 +18,13 @@ export const useThemeStore = create<ThemeState>()(
           const newTheme = state.theme === "light" ? "dark" : "light";
           // Apply to document
           if (typeof window !== "undefined") {
-            document.documentElement.classList.toggle(
-              "dark",
-              newTheme === "dark",
-            );
+            if (newTheme === "dark") {
+              document.documentElement.classList.add("dark");
+              document.documentElement.classList.remove("light");
+            } else {
+              document.documentElement.classList.add("light");
+              document.documentElement.classList.remove("dark");
+            }
           }
           return { theme: newTheme, manuallySet: true };
         });
@@ -29,7 +32,13 @@ export const useThemeStore = create<ThemeState>()(
       setTheme: (theme, manual = false) => {
         set({ theme, manuallySet: manual });
         if (typeof window !== "undefined") {
-          document.documentElement.classList.toggle("dark", theme === "dark");
+          if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+            document.documentElement.classList.remove("light");
+          } else {
+            document.documentElement.classList.add("light");
+            document.documentElement.classList.remove("dark");
+          }
         }
       },
     }),

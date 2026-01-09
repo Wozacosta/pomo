@@ -11,45 +11,38 @@ export default function ThemeProvider({
   const { theme, setTheme } = useThemeStore();
 
   useEffect(() => {
-    // Apply theme class to document
     const root = document.documentElement;
+
+    console.log("[ThemeProvider] Applying theme:", theme);
+    console.log("[ThemeProvider] Current classes:", root.classList.toString());
+
+    // Apply theme class
     if (theme === "dark") {
       root.classList.add("dark");
+      root.classList.remove("light");
     } else {
+      root.classList.add("light");
       root.classList.remove("dark");
     }
+
+    console.log("[ThemeProvider] Updated classes:", root.classList.toString());
   }, [theme]);
 
   useEffect(() => {
-    // Check if user has a stored preference, if not use system preference
+    // Only run once on mount to check for initial preference
     const stored = localStorage.getItem("pomodoro-theme-storage");
+    console.log("[ThemeProvider] Stored theme:", stored);
 
     if (!stored) {
-      // No stored preference, check system preference
-      if (
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches
-      ) {
-        setTheme("dark");
-      } else {
-        setTheme("light");
-      }
+      // Check system preference
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+      ).matches;
+      console.log("[ThemeProvider] System prefers dark:", prefersDark);
+      setTheme(prefersDark ? "dark" : "light", false);
+    } else {
+      console.log("[ThemeProvider] Using stored preference");
     }
-
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Only auto-switch if user hasn't manually set a preference
-      const hasManualPreference = localStorage.getItem(
-        "pomodoro-theme-storage",
-      );
-      if (!hasManualPreference) {
-        setTheme(e.matches ? "dark" : "light");
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
   }, [setTheme]);
 
   return <>{children}</>;
