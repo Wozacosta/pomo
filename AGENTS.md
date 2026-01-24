@@ -53,10 +53,18 @@ pomodoro-timer/
 - Manual override with sun/moon toggle button
 
 ### Timer Logic
-- Uses `setInterval` for ticking (1-second intervals)
+- **Timestamp-based timing**: Stores `endTime` when timer starts, calculates remaining time as `endTime - Date.now()`
+- **Web Worker** (`public/timer-worker.js`): Sends tick messages every second, not throttled in background tabs
 - Three types: work (25m), short break (5m), long break (15m)
 - Web Audio API for completion sound
 - Sessions saved with timestamps, duration, task reference
+- **Browser tab title**: Shows countdown while timer is active (e.g., "23:45 - Pomodoro")
+
+#### Why Timestamp-Based?
+Browsers throttle `setInterval` to ~1/minute in background tabs. The timestamp approach ensures:
+- Timer continues accurately when tab is in background
+- Tab title updates every second via Web Worker
+- Correct time shown immediately when returning to tab
 
 ### Styling Conventions
 - All components have `dark:` variants for backgrounds, text, borders
@@ -76,6 +84,16 @@ pomodoro-timer/
 - Edit `store/timer-store.ts`
 - Timer actions: `startTimer`, `pauseTimer`, `resumeTimer`, `resetTimer`, `tick`
 - Session completion: `completeSession` (updates stats, tasks, streaks)
+- Key state: `endTime` (when timer ends), `pausedTimeRemaining` (time left when paused)
+
+#### Timer State Flow
+```
+Start:    endTime = Date.now() + duration * 1000
+Tick:     currentTime = Math.ceil((endTime - Date.now()) / 1000)
+Pause:    pausedTimeRemaining = currentTime, endTime = null
+Resume:   endTime = Date.now() + pausedTimeRemaining * 1000
+Reset:    endTime = null, currentTime = full duration
+```
 
 ### Adding New Theme Features
 - Modify `store/theme-store.ts` for state
@@ -209,10 +227,11 @@ pnpm lint
 4. See `DARK_MODE_SETUP.md` for comprehensive guide
 
 ### Timer Issues
-1. Check if `setInterval` is being cleared properly
-2. Verify `tick()` is being called each second
-3. Look for competing useEffect dependencies
-4. Check browser console for errors
+1. Check Web Worker is loaded (`public/timer-worker.js`)
+2. Verify `tick()` is being called (add console.log temporarily)
+3. Check `endTime` is set correctly in store
+4. Look for competing useEffect dependencies
+5. Check browser console for errors
 
 ### State Not Persisting
 1. Verify localStorage is enabled
@@ -260,9 +279,10 @@ When modifying this project:
 - `app/globals.css` - Tailwind v4 config, dark mode setup
 - `app/layout.tsx` - Root layout, theme script, fonts
 - `app/page.tsx` - Main app UI and layout
-- `store/timer-store.ts` - All timer logic and state
+- `store/timer-store.ts` - All timer logic and state (timestamp-based)
 - `store/theme-store.ts` - Theme management
-- `components/Timer.tsx` - Main timer component
+- `components/Timer.tsx` - Main timer component, Web Worker integration
+- `public/timer-worker.js` - Web Worker for background tab timer
 
 ### Common Imports
 ```typescript

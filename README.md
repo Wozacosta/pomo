@@ -9,6 +9,8 @@ A simple, elegant Pomodoro timer built with Next.js 16, featuring concentration 
 - ✅ **Visual Progress Indicator** - Circular progress ring showing time remaining
 - ✅ **Pause/Resume Functionality** - Full control over timer state
 - ✅ **Notification Sound** - Web Audio API beep when timer completes
+- ✅ **Browser Tab Countdown** - Shows remaining time in browser tab title (e.g., "23:45 - Pomodoro")
+- ✅ **Background Tab Support** - Timer continues accurately even when tab is in background (uses Web Worker)
 - ✅ **Music Links Sidebar** - Curated links to concentration music (NTS, Do You World, YouTube)
 - ✅ **localStorage Persistence** - All timer data saved locally
 - ✅ **Dark/Light Mode** - Automatic system preference detection with manual toggle override
@@ -34,10 +36,38 @@ pomodoro-timer/
 │   ├── Timer.tsx        # Main timer component
 │   ├── Sidebar.tsx      # Stats and session history
 │   └── MusicPanel.tsx   # Music links panel
+├── public/
+│   └── timer-worker.js  # Web Worker for background timer
 └── store/
     ├── timer-store.ts   # Timer state management
     └── theme-store.ts   # Theme state management
 ```
+
+### Timer Implementation
+
+The timer uses a **timestamp-based approach** combined with a **Web Worker** to ensure accurate timing even when the browser tab is in the background.
+
+**Why this matters:**
+- Browsers throttle `setInterval` to ~1/minute in background tabs to save resources
+- A naive countdown would freeze or drift significantly when the tab is not visible
+
+**How it works:**
+
+1. **Timestamp-based timing** (`store/timer-store.ts`):
+   - When timer starts, stores `endTime = Date.now() + duration * 1000`
+   - Each tick calculates remaining time as `endTime - Date.now()`
+   - When paused, stores `pausedTimeRemaining` and clears `endTime`
+   - When resumed, recalculates `endTime` from remaining time
+
+2. **Web Worker** (`public/timer-worker.js`):
+   - Runs in a separate thread, not throttled by browser
+   - Sends `tick` message every second to the main thread
+   - Timer component receives messages and updates state
+
+3. **Document title** (`components/Timer.tsx`):
+   - Updates on every tick with format: `"23:45 - Pomodoro"`
+   - Shows session type (Pomodoro, Short Break, Long Break)
+   - Resets to "Pomodoro Timer" when timer is stopped
 
 ## Getting Started
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTimerStore } from "@/store/timer-store";
 
 export default function Timer() {
@@ -27,17 +27,27 @@ export default function Timer() {
 
   const [isEditingTask, setIsEditingTask] = useState(false);
   const [taskInput, setTaskInput] = useState("");
+  const workerRef = useRef<Worker | null>(null);
 
-  // Timer tick effect
+  // Initialize Web Worker for background timer
   useEffect(() => {
-    if (!isRunning || isPaused) return;
-
-    const interval = setInterval(() => {
+    workerRef.current = new Worker("/timer-worker.js");
+    workerRef.current.onmessage = () => {
       tick();
-    }, 1000);
+    };
+    return () => {
+      workerRef.current?.terminate();
+    };
+  }, [tick]);
 
-    return () => clearInterval(interval);
-  }, [isRunning, isPaused, tick]);
+  // Start/stop worker based on timer state
+  useEffect(() => {
+    if (isRunning && !isPaused) {
+      workerRef.current?.postMessage("start");
+    } else {
+      workerRef.current?.postMessage("stop");
+    }
+  }, [isRunning, isPaused]);
 
   // Update document title with countdown
   useEffect(() => {
