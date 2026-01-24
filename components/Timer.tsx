@@ -39,6 +39,26 @@ export default function Timer() {
     return () => clearInterval(interval);
   }, [isRunning, isPaused, tick]);
 
+  // Update document title with countdown
+  useEffect(() => {
+    const label =
+      timerType === "work"
+        ? "Pomodoro"
+        : timerType === "shortBreak"
+          ? "Short Break"
+          : "Long Break";
+
+    if (isRunning || isPaused) {
+      document.title = `${formatTime(currentTime)} - ${label}`;
+    } else {
+      document.title = "Pomodoro Timer";
+    }
+
+    return () => {
+      document.title = "Pomodoro Timer";
+    };
+  }, [currentTime, timerType, isRunning, isPaused]);
+
   // Format time display
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
