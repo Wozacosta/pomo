@@ -11,6 +11,18 @@ export default defineConfig({
     environment: "happy-dom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    coverage: {
+      provider: "istanbul",
+      reporter: ["text", "html", "lcov"],
+      exclude: [
+        "node_modules/**",
+        "**/*.test.{ts,tsx}",
+        "**/*.config.{ts,mts,js}",
+        "vitest.setup.ts",
+        ".next/**",
+        "public/**",
+      ],
+    },
   },
   resolve: {
     alias: {
