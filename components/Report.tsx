@@ -1,13 +1,35 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useTimerStore } from "@/store/timer-store";
 
 export default function Report() {
   const { sessions, tasks } = useTimerStore();
+  const [hoveredDay, setHoveredDay] = useState<string | null>(null);
 
   // Group sessions by date and task
   const reportData = useMemo(() => {
+    // // TEMP: Mock data for testing (fixed values)
+    // const today = new Date();
+    // const mockData: Record<string, Record<string, number>> = {};
+    // const fixedValues = [
+    //   { react: 45, node: 30 },
+    //   { react: 60, node: 45 },
+    //   { react: 90, node: 60 },
+    //   { react: 30, node: 20 },
+    //   { react: 120, node: 80 },
+    //   { react: 150, node: 100 },
+    //   { react: 180, node: 90 },
+    // ];
+    // for (let i = 6; i >= 0; i--) {
+    //   const date = new Date();
+    //   date.setDate(today.getDate() - i);
+    //   const dateStr = date.toDateString();
+    //   mockData[dateStr] = fixedValues[6 - i];
+    // }
+    // return mockData;
+    // // END TEMP
+
     const data: Record<string, Record<string, number>> = {}; // date -> task -> minutes
 
     sessions
@@ -115,17 +137,23 @@ export default function Report() {
         </div>
 
         {/* Chart Area */}
-        <div className="space-y-4">
+        <div className="space-y-4 overflow-visible pt-8">
           {/* Y-axis labels */}
-          <div className="flex items-end gap-2" style={{ height: "200px" }}>
+          <div
+            className="flex items-end gap-2 overflow-visible"
+            style={{ height: "200px" }}
+          >
             {/* Y-axis */}
             <div className="flex flex-col justify-between h-full pr-2">
-              {[7, 6, 5, 4, 3, 2, 1, 0].map((val) => (
+              {Array.from(
+                { length: maxMinutes / 60 + 1 },
+                (_, i) => maxMinutes - i * 60,
+              ).map((val) => (
                 <span
                   key={val}
                   className="text-xs text-zinc-600 dark:text-zinc-400"
                 >
-                  {Math.round((val / 7) * maxMinutes)}
+                  {val}
                 </span>
               ))}
             </div>
@@ -149,10 +177,20 @@ export default function Report() {
                   >
                     {/* Stacked bars */}
                     <div
-                      className="w-full relative cursor-pointer"
+                      className="w-full relative cursor-pointer overflow-visible"
                       style={{ height: "200px" }}
-                      title={`Total: ${formatTime(dayTotal)}`}
+                      onMouseEnter={() => setHoveredDay(dateStr)}
+                      onMouseLeave={() => setHoveredDay(null)}
                     >
+                      {/* Tooltip */}
+                      {hoveredDay === dateStr && dayTotal > 0 && (
+                        <div
+                          className="absolute left-1/2 -translate-x-1/2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 text-xs px-2 py-1 rounded whitespace-nowrap z-50"
+                          style={{ top: "-28px" }}
+                        >
+                          {formatTime(dayTotal)}
+                        </div>
+                      )}
                       {allTasks.map((task, taskIdx) => {
                         const taskMinutes = dayData[task] || 0;
                         const taskHeight = getBarHeight(taskMinutes);
@@ -165,7 +203,7 @@ export default function Report() {
                         return (
                           <div
                             key={task}
-                            className="absolute w-full rounded-t"
+                            className="absolute w-full rounded-t pointer-events-none"
                             style={{
                               bottom: `${previousHeight}%`,
                               height: `${taskHeight}%`,
@@ -173,7 +211,6 @@ export default function Report() {
                               border: "1px solid",
                               borderColor: `hsl(${(taskIdx * 360) / allTasks.length}, 70%, 40%)`,
                             }}
-                            title={`${task}: ${formatTime(taskMinutes)}`}
                           />
                         );
                       })}
