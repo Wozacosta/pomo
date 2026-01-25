@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface MusicLink {
   id: string;
@@ -53,7 +53,6 @@ function generateId(): string {
 }
 
 function loadCustomLinks(): MusicLink[] {
-  if (typeof window === "undefined") return [];
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (!stored) return [];
@@ -78,14 +77,18 @@ function saveCustomLinks(links: MusicLink[]) {
 }
 
 export default function MusicPanel() {
-  const [customLinks, setCustomLinks] = useState<MusicLink[]>(() =>
-    loadCustomLinks(),
-  );
+  const [customLinks, setCustomLinks] = useState<MusicLink[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newUrl, setNewUrl] = useState("");
   const [newCategory, setNewCategory] = useState("");
   const [urlError, setUrlError] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+
+  // Load custom links from localStorage after mount to avoid hydration mismatch
+  useEffect(() => {
+    setCustomLinks(loadCustomLinks());
+  }, []);
 
   const links = [...defaultMusicLinks, ...customLinks];
 
@@ -94,7 +97,6 @@ export default function MusicPanel() {
     setCustomLinks(updated);
     saveCustomLinks(updated);
   };
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
 
   const categories = [
     "All",
