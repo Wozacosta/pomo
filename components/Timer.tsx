@@ -183,6 +183,48 @@ export default function Timer() {
     }
   }, [currentTime, isRunning, playFinishSound]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Skip if user is typing in an input/textarea
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      switch (e.key) {
+        case " ":
+          e.preventDefault(); // Prevent page scroll
+          if (isRunning && !isPaused) {
+            pauseTimer();
+          } else if (isPaused) {
+            resumeTimer();
+          } else {
+            playClickSound();
+            startTimer();
+          }
+          break;
+        case "r":
+        case "R":
+          resetTimer();
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [
+    isRunning,
+    isPaused,
+    pauseTimer,
+    resumeTimer,
+    resetTimer,
+    startTimer,
+    playClickSound,
+  ]);
+
   const handleStart = () => {
     if (isPaused) {
       resumeTimer();
