@@ -69,7 +69,7 @@ export default function Report() {
     return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
   };
 
-  // Get max value for scaling (minimum 120 minutes for better visual scaling)
+  // Get max value for scaling (round up to nearest hour)
   const maxMinutes = useMemo(() => {
     let max = 0;
     Object.values(reportData).forEach((dayData) => {
@@ -79,7 +79,8 @@ export default function Report() {
       );
       max = Math.max(max, dayTotal);
     });
-    return Math.max(max, 420); // At least 420 minutes (7 hours) for better scaling
+    // Round up to nearest 60 minutes (1 hour), minimum 60
+    return Math.max(Math.ceil(max / 60) * 60, 60);
   }, [reportData]);
 
   // Get bar height percentage
@@ -148,8 +149,9 @@ export default function Report() {
                   >
                     {/* Stacked bars */}
                     <div
-                      className="w-full relative"
+                      className="w-full relative cursor-pointer"
                       style={{ height: "200px" }}
+                      title={`Total: ${formatTime(dayTotal)}`}
                     >
                       {allTasks.map((task, taskIdx) => {
                         const taskMinutes = dayData[task] || 0;
