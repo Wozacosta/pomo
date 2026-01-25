@@ -278,12 +278,16 @@ export default function Timer() {
     playRingSound,
   ]);
 
-  // Play jingle when timer completes
+  // Track previous time to detect completion
+  const prevTimeRef = useRef(currentTime);
+
+  // Play jingle when timer completes (detects transition to 0)
   useEffect(() => {
-    if (currentTime === 0 && isRunning) {
+    if (prevTimeRef.current > 0 && currentTime === 0) {
       playFinishSound();
     }
-  }, [currentTime, isRunning, playFinishSound]);
+    prevTimeRef.current = currentTime;
+  }, [currentTime, playFinishSound]);
 
   // Keyboard shortcuts
   useEffect(() => {
