@@ -1,7 +1,17 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useTimerStore } from "@/store/timer-store";
+
+// Shared audio context helper
+function getAudioContext(): AudioContext | null {
+  const AudioContextClass =
+    window.AudioContext ||
+    (window as typeof window & { webkitAudioContext?: typeof AudioContext })
+      .webkitAudioContext;
+  if (!AudioContextClass) return null;
+  return new AudioContextClass();
+}
 
 export default function Timer() {
   const {
@@ -28,6 +38,23 @@ export default function Timer() {
   const [isEditingTask, setIsEditingTask] = useState(false);
   const [taskInput, setTaskInput] = useState("");
   const workerRef = useRef<Worker | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+
+  // Get or create shared AudioContext
+  const getSharedAudioContext =
+    useCallback(async (): Promise<AudioContext | null> => {
+      try {
+        if (!audioContextRef.current) {
+          audioContextRef.current = getAudioContext();
+        }
+        if (audioContextRef.current?.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+        return audioContextRef.current;
+      } catch {
+        return null;
+      }
+    }, []);
 
   // Initialize Web Worker for background timer
   useEffect(() => {
@@ -39,6 +66,13 @@ export default function Timer() {
       workerRef.current?.terminate();
     };
   }, [tick]);
+
+  // Cleanup AudioContext on unmount
+  useEffect(() => {
+    return () => {
+      audioContextRef.current?.close();
+    };
+  }, []);
 
   // Start/stop worker based on timer state
   useEffect(() => {
@@ -79,42 +113,81 @@ export default function Timer() {
   // Calculate progress percentage
   const progress = ((duration - currentTime) / duration) * 100;
 
-  // Play sound when timer completes
-  useEffect(() => {
-    if (currentTime === 0 && isRunning) {
-      // Play notification sound using Web Audio API
-      try {
-        const AudioContextClass =
-          window.AudioContext || (window as any).webkitAudioContext;
-        if (!AudioContextClass) return;
-        const audioContext = new AudioContextClass();
+  // Play click sound when timer starts
+  const playClickSound = useCallback(async () => {
+    const audioContext = await getSharedAudioContext();
+    if (!audioContext) return;
+
+    try {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = 1200;
+      oscillator.type = "sine";
+
+      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        audioContext.currentTime + 0.05,
+      );
+
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.05);
+    } catch {
+      // Audio playback failed
+    }
+  }, [getSharedAudioContext]);
+
+  // Play jingle sound when timer completes
+  const playFinishSound = useCallback(async () => {
+    const audioContext = await getSharedAudioContext();
+    if (!audioContext) return;
+
+    try {
+      // Play a cheerful 3-note jingle (C5, E5, G5 major chord arpeggio)
+      const notes = [523.25, 659.25, 783.99];
+      const noteDuration = 0.15;
+
+      notes.forEach((freq, i) => {
         const oscillator = audioContext.createOscillator();
         const gainNode = audioContext.createGain();
 
         oscillator.connect(gainNode);
         gainNode.connect(audioContext.destination);
 
-        oscillator.frequency.value = 800; // Higher pitch
+        oscillator.frequency.value = freq;
         oscillator.type = "sine";
 
-        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        const startTime = audioContext.currentTime + i * noteDuration;
+        gainNode.gain.setValueAtTime(0.3, startTime);
         gainNode.gain.exponentialRampToValueAtTime(
           0.01,
-          audioContext.currentTime + 0.5,
+          startTime + noteDuration * 1.5,
         );
 
-        oscillator.start(audioContext.currentTime);
-        oscillator.stop(audioContext.currentTime + 0.5);
-      } catch {
-        console.log("Timer completed! (audio not available)");
-      }
+        oscillator.start(startTime);
+        oscillator.stop(startTime + noteDuration * 1.5);
+      });
+    } catch {
+      // Audio playback failed
     }
-  }, [currentTime, isRunning]);
+  }, [getSharedAudioContext]);
+
+  // Play jingle when timer completes
+  useEffect(() => {
+    if (currentTime === 0 && isRunning) {
+      playFinishSound();
+    }
+  }, [currentTime, isRunning, playFinishSound]);
 
   const handleStart = () => {
     if (isPaused) {
       resumeTimer();
     } else {
+      playClickSound();
       startTimer();
     }
   };
