@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useMemo } from 'react';
-import { useTimerStore } from '@/store/timer-store';
+import { useMemo } from "react";
+import { useTimerStore } from "@/store/timer-store";
 
 export default function Report() {
   const { sessions, tasks } = useTimerStore();
@@ -9,14 +9,16 @@ export default function Report() {
   // Group sessions by date and task
   const reportData = useMemo(() => {
     const data: Record<string, Record<string, number>> = {}; // date -> task -> minutes
-    
+
     sessions
-      .filter(s => s.completed && s.endTime)
-      .forEach(session => {
-        const date = new Date(session.endTime || session.startTime).toDateString();
-        const taskName = session.subject || 'No Project';
+      .filter((s) => s.completed && s.endTime)
+      .forEach((session) => {
+        const date = new Date(
+          session.endTime || session.startTime,
+        ).toDateString();
+        const taskName = session.subject || "No Project";
         const minutes = session.duration;
-        
+
         if (!data[date]) {
           data[date] = {};
         }
@@ -25,7 +27,7 @@ export default function Report() {
         }
         data[date][taskName] += minutes;
       });
-    
+
     return data;
   }, [sessions]);
 
@@ -43,8 +45,8 @@ export default function Report() {
   // Get all unique tasks
   const allTasks = useMemo(() => {
     const taskSet = new Set<string>();
-    Object.values(reportData).forEach(dayData => {
-      Object.keys(dayData).forEach(task => taskSet.add(task));
+    Object.values(reportData).forEach((dayData) => {
+      Object.keys(dayData).forEach((task) => taskSet.add(task));
     });
     return Array.from(taskSet);
   }, [reportData]);
@@ -52,7 +54,7 @@ export default function Report() {
   // Calculate totals per task
   const taskTotals = useMemo(() => {
     const totals: Record<string, number> = {};
-    Object.values(reportData).forEach(dayData => {
+    Object.values(reportData).forEach((dayData) => {
       Object.entries(dayData).forEach(([task, minutes]) => {
         totals[task] = (totals[task] || 0) + minutes;
       });
@@ -64,17 +66,20 @@ export default function Report() {
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
+    return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
   };
 
-  // Get max value for scaling
+  // Get max value for scaling (minimum 120 minutes for better visual scaling)
   const maxMinutes = useMemo(() => {
     let max = 0;
-    Object.values(reportData).forEach(dayData => {
-      const dayTotal = Object.values(dayData).reduce((sum, mins) => sum + mins, 0);
+    Object.values(reportData).forEach((dayData) => {
+      const dayTotal = Object.values(dayData).reduce(
+        (sum, mins) => sum + mins,
+        0,
+      );
       max = Math.max(max, dayTotal);
     });
-    return Math.max(max, 1); // At least 1 to avoid division by zero
+    return Math.max(max, 420); // At least 420 minutes (7 hours) for better scaling
   }, [reportData]);
 
   // Get bar height percentage
@@ -84,7 +89,9 @@ export default function Report() {
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">Report</h2>
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+        Report
+      </h2>
 
       {/* Chart */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
@@ -98,7 +105,9 @@ export default function Report() {
                     backgroundColor: `hsl(${(idx * 360) / allTasks.length}, 70%, 50%)`,
                   }}
                 />
-                <span className="text-xs text-zinc-600 dark:text-zinc-400">{task}</span>
+                <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                  {task}
+                </span>
               </div>
             ))}
           </div>
@@ -107,11 +116,14 @@ export default function Report() {
         {/* Chart Area */}
         <div className="space-y-4">
           {/* Y-axis labels */}
-          <div className="flex items-end gap-2" style={{ height: '200px' }}>
+          <div className="flex items-end gap-2" style={{ height: "200px" }}>
             {/* Y-axis */}
             <div className="flex flex-col justify-between h-full pr-2">
               {[7, 6, 5, 4, 3, 2, 1, 0].map((val) => (
-                <span key={val} className="text-xs text-zinc-600 dark:text-zinc-400">
+                <span
+                  key={val}
+                  className="text-xs text-zinc-600 dark:text-zinc-400"
+                >
                   {Math.round((val / 7) * maxMinutes)}
                 </span>
               ))}
@@ -122,20 +134,31 @@ export default function Report() {
               {last7Days.map((day) => {
                 const dateStr = day.toDateString();
                 const dayData = reportData[dateStr] || {};
-                const dayTotal = Object.values(dayData).reduce((sum, mins) => sum + mins, 0);
-                const isToday = day.toDateString() === new Date().toDateString();
+                const dayTotal = Object.values(dayData).reduce(
+                  (sum, mins) => sum + mins,
+                  0,
+                );
+                const isToday =
+                  day.toDateString() === new Date().toDateString();
 
                 return (
-                  <div key={dateStr} className="flex-1 flex flex-col items-center gap-1">
+                  <div
+                    key={dateStr}
+                    className="flex-1 flex flex-col items-center gap-1"
+                  >
                     {/* Stacked bars */}
-                    <div className="w-full relative" style={{ height: '200px' }}>
+                    <div
+                      className="w-full relative"
+                      style={{ height: "200px" }}
+                    >
                       {allTasks.map((task, taskIdx) => {
                         const taskMinutes = dayData[task] || 0;
                         const taskHeight = getBarHeight(taskMinutes);
                         const previousTasksHeight = allTasks
                           .slice(0, taskIdx)
                           .reduce((sum, t) => sum + (dayData[t] || 0), 0);
-                        const previousHeight = getBarHeight(previousTasksHeight);
+                        const previousHeight =
+                          getBarHeight(previousTasksHeight);
 
                         return (
                           <div
@@ -145,7 +168,7 @@ export default function Report() {
                               bottom: `${previousHeight}%`,
                               height: `${taskHeight}%`,
                               backgroundColor: `hsl(${(taskIdx * 360) / allTasks.length}, 70%, 50%)`,
-                              border: '1px solid',
+                              border: "1px solid",
                               borderColor: `hsl(${(taskIdx * 360) / allTasks.length}, 70%, 40%)`,
                             }}
                             title={`${task}: ${formatTime(taskMinutes)}`}
@@ -158,11 +181,16 @@ export default function Report() {
                     </div>
 
                     {/* X-axis labels */}
-                    <div className={`text-xs ${isToday ? 'font-bold' : ''} text-zinc-600 dark:text-zinc-400`}>
-                      {day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    <div
+                      className={`text-xs ${isToday ? "font-bold" : ""} text-zinc-600 dark:text-zinc-400`}
+                    >
+                      {day.toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                      })}
                     </div>
                     <div className="text-xs text-zinc-500 dark:text-zinc-500">
-                      {day.toLocaleDateString('en-US', { weekday: 'short' })}
+                      {day.toLocaleDateString("en-US", { weekday: "short" })}
                     </div>
                   </div>
                 );
@@ -175,12 +203,18 @@ export default function Report() {
       {/* Summary Table */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">Summary</h3>
+          <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
+            Summary
+          </h3>
         </div>
         <div className="space-y-1">
           <div className="grid grid-cols-2 gap-4 pb-3 border-b-2 border-zinc-200 dark:border-zinc-700">
-            <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">PROJECT</div>
-            <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 text-right">TIME (HH:MM)</div>
+            <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+              PROJECT
+            </div>
+            <div className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 text-right">
+              TIME (HH:MM)
+            </div>
           </div>
           {Object.entries(taskTotals)
             .sort(([, a], [, b]) => b - a)
@@ -196,7 +230,9 @@ export default function Report() {
                       backgroundColor: `hsl(${(allTasks.indexOf(task) * 360) / Math.max(allTasks.length, 1)}, 70%, 50%)`,
                     }}
                   />
-                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">{task}</span>
+                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                    {task}
+                  </span>
                 </div>
                 <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 text-right">
                   {formatTime(totalMinutes)}
