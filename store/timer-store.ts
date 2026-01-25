@@ -20,6 +20,9 @@ export interface Task {
   createdAt: number;
 }
 
+export type EndSoundType = "jingle" | "birds" | "ring" | "none";
+export type ClickSoundType = "click" | "none";
+
 export interface TimerState {
   // Current timer
   isRunning: boolean;
@@ -36,6 +39,11 @@ export interface TimerState {
   workDuration: number; // default 25 minutes
   shortBreakDuration: number; // default 5 minutes
   longBreakDuration: number; // default 15 minutes
+
+  // Sound settings
+  soundEnabled: boolean; // master mute
+  endSoundType: EndSoundType;
+  clickSoundType: ClickSoundType;
 
   // Tasks
   tasks: Task[];
@@ -63,6 +71,11 @@ export interface TimerState {
     shortBreakDuration?: number;
     longBreakDuration?: number;
   }) => void;
+  updateSoundSettings: (settings: {
+    soundEnabled?: boolean;
+    endSoundType?: EndSoundType;
+    clickSoundType?: ClickSoundType;
+  }) => void;
 }
 
 export const useTimerStore = create<TimerState>()(
@@ -80,6 +93,10 @@ export const useTimerStore = create<TimerState>()(
       workDuration: 25,
       shortBreakDuration: 5,
       longBreakDuration: 15,
+
+      soundEnabled: true,
+      endSoundType: "jingle",
+      clickSoundType: "click",
 
       tasks: [],
       sessions: [],
@@ -284,9 +301,31 @@ export const useTimerStore = create<TimerState>()(
           get().resetTimer();
         }
       },
+
+      updateSoundSettings: (settings) => {
+        set({
+          soundEnabled: settings.soundEnabled ?? get().soundEnabled,
+          endSoundType: settings.endSoundType ?? get().endSoundType,
+          clickSoundType: settings.clickSoundType ?? get().clickSoundType,
+        });
+      },
     }),
     {
       name: "pomodoro-timer-storage",
+      version: 1,
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as Partial<TimerState>;
+        if (version === 0) {
+          // Migration from version 0: add sound settings with defaults
+          return {
+            ...state,
+            soundEnabled: state.soundEnabled ?? true,
+            endSoundType: state.endSoundType ?? "jingle",
+            clickSoundType: state.clickSoundType ?? "click",
+          };
+        }
+        return state as TimerState;
+      },
     },
   ),
 );

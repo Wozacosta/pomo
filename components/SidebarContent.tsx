@@ -1,11 +1,21 @@
 "use client";
 
 import { useTimerStore } from "@/store/timer-store";
+import type { EndSoundType, ClickSoundType } from "@/store/timer-store";
+import { previewEndSound, previewClickSound } from "@/lib/sounds";
 import TasksList from "./TasksList";
 
 export default function SidebarContent() {
-  const { sessions, totalCompleted, currentStreak, longestStreak } =
-    useTimerStore();
+  const {
+    sessions,
+    totalCompleted,
+    currentStreak,
+    longestStreak,
+    soundEnabled,
+    endSoundType,
+    clickSoundType,
+    updateSoundSettings,
+  } = useTimerStore();
 
   return (
     <div className="space-y-6">
@@ -41,6 +51,107 @@ export default function SidebarContent() {
 
       {/* Tasks List */}
       <TasksList />
+
+      {/* Sound Settings */}
+      <div>
+        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+          Sound Settings
+        </h3>
+        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+          {/* Master Mute Toggle */}
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="sound-enabled-toggle"
+              className="text-sm text-zinc-700 dark:text-zinc-300"
+            >
+              Sound Enabled
+            </label>
+            <button
+              id="sound-enabled-toggle"
+              role="switch"
+              aria-checked={soundEnabled}
+              aria-label="Toggle sound enabled"
+              onClick={() =>
+                updateSoundSettings({ soundEnabled: !soundEnabled })
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  updateSoundSettings({ soundEnabled: !soundEnabled });
+                }
+              }}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                soundEnabled ? "bg-blue-600" : "bg-zinc-300 dark:bg-zinc-600"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  soundEnabled ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* End Sound Selection */}
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="end-sound-select"
+              className="text-sm text-zinc-700 dark:text-zinc-300"
+            >
+              End Sound
+            </label>
+            <select
+              id="end-sound-select"
+              value={endSoundType}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (
+                  value === "jingle" ||
+                  value === "birds" ||
+                  value === "ring" ||
+                  value === "none"
+                ) {
+                  updateSoundSettings({ endSoundType: value });
+                  previewEndSound(value);
+                }
+              }}
+              disabled={!soundEnabled}
+              className="px-3 py-1.5 text-sm bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg text-zinc-900 dark:text-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="jingle">Jingle</option>
+              <option value="birds">Birds</option>
+              <option value="ring">Ring</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+
+          {/* Click Sound Selection */}
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="click-sound-select"
+              className="text-sm text-zinc-700 dark:text-zinc-300"
+            >
+              Click Sound
+            </label>
+            <select
+              id="click-sound-select"
+              value={clickSoundType}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "click" || value === "none") {
+                  updateSoundSettings({ clickSoundType: value });
+                  previewClickSound(value);
+                }
+              }}
+              disabled={!soundEnabled}
+              className="px-3 py-1.5 text-sm bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg text-zinc-900 dark:text-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="click">Click</option>
+              <option value="none">None</option>
+            </select>
+          </div>
+        </div>
+      </div>
 
       {/* Recent Sessions */}
       <div>

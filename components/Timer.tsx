@@ -21,6 +21,9 @@ export default function Timer() {
     duration,
     timerType,
     currentTaskName,
+    soundEnabled,
+    endSoundType,
+    clickSoundType,
 
     sessions,
     setCurrentTask,
@@ -115,6 +118,8 @@ export default function Timer() {
 
   // Play click sound when timer starts
   const playClickSound = useCallback(async () => {
+    if (!soundEnabled || clickSoundType === "none") return;
+
     const audioContext = await getSharedAudioContext();
     if (!audioContext) return;
 
@@ -139,42 +144,139 @@ export default function Timer() {
     } catch {
       // Audio playback failed
     }
-  }, [getSharedAudioContext]);
+  }, [getSharedAudioContext, soundEnabled, clickSoundType]);
 
-  // Play jingle sound when timer completes
+  // Play jingle sound (C5, E5, G5 major chord arpeggio)
+  const playJingleSound = useCallback(async (audioContext: AudioContext) => {
+    const notes = [523.25, 659.25, 783.99];
+    const noteDuration = 0.15;
+
+    notes.forEach((freq, i) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = freq;
+      oscillator.type = "sine";
+
+      const startTime = audioContext.currentTime + i * noteDuration;
+      gainNode.gain.setValueAtTime(0.3, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.01,
+        startTime + noteDuration * 1.5,
+      );
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + noteDuration * 1.5);
+    });
+  }, []);
+
+  // Play bird chirping sound
+  const playBirdsSound = useCallback(async (audioContext: AudioContext) => {
+    // Create multiple chirps with varying frequencies
+    const chirps = [
+      { freq: 2500, delay: 0 },
+      { freq: 3000, delay: 0.1 },
+      { freq: 2800, delay: 0.15 },
+      { freq: 3200, delay: 0.3 },
+      { freq: 2600, delay: 0.35 },
+      { freq: 3100, delay: 0.5 },
+    ];
+
+    chirps.forEach(({ freq, delay }) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = freq;
+      oscillator.type = "sine";
+
+      // Add frequency modulation for more natural chirp
+      const startTime = audioContext.currentTime + delay;
+      oscillator.frequency.setValueAtTime(freq, startTime);
+      oscillator.frequency.exponentialRampToValueAtTime(
+        freq * 1.2,
+        startTime + 0.03,
+      );
+      oscillator.frequency.exponentialRampToValueAtTime(
+        freq * 0.8,
+        startTime + 0.06,
+      );
+
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.08);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + 0.1);
+    });
+  }, []);
+
+  // Play ring/bell sound
+  const playRingSound = useCallback(async (audioContext: AudioContext) => {
+    // Bell-like sound using multiple harmonics
+    const fundamentalFreq = 800;
+    const harmonics = [1, 2, 3, 4.5];
+    const duration = 0.8;
+
+    harmonics.forEach((harmonic, i) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.frequency.value = fundamentalFreq * harmonic;
+      oscillator.type = "sine";
+
+      const startTime = audioContext.currentTime;
+      // Higher harmonics are quieter
+      const volume = 0.25 / (i + 1);
+      gainNode.gain.setValueAtTime(volume, startTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    });
+  }, []);
+
+  // Play finish sound based on selected type
   const playFinishSound = useCallback(async () => {
+    if (!soundEnabled || endSoundType === "none") return;
+
     const audioContext = await getSharedAudioContext();
     if (!audioContext) return;
 
     try {
-      // Play a cheerful 3-note jingle (C5, E5, G5 major chord arpeggio)
-      const notes = [523.25, 659.25, 783.99];
-      const noteDuration = 0.15;
-
-      notes.forEach((freq, i) => {
-        const oscillator = audioContext.createOscillator();
-        const gainNode = audioContext.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioContext.destination);
-
-        oscillator.frequency.value = freq;
-        oscillator.type = "sine";
-
-        const startTime = audioContext.currentTime + i * noteDuration;
-        gainNode.gain.setValueAtTime(0.3, startTime);
-        gainNode.gain.exponentialRampToValueAtTime(
-          0.01,
-          startTime + noteDuration * 1.5,
-        );
-
-        oscillator.start(startTime);
-        oscillator.stop(startTime + noteDuration * 1.5);
-      });
+      switch (endSoundType) {
+        case "jingle":
+          await playJingleSound(audioContext);
+          break;
+        case "birds":
+          await playBirdsSound(audioContext);
+          break;
+        case "ring":
+          await playRingSound(audioContext);
+          break;
+        default:
+          // Unknown sound type, fall back to jingle
+          await playJingleSound(audioContext);
+      }
     } catch {
       // Audio playback failed
     }
-  }, [getSharedAudioContext]);
+  }, [
+    getSharedAudioContext,
+    soundEnabled,
+    endSoundType,
+    playJingleSound,
+    playBirdsSound,
+    playRingSound,
+  ]);
 
   // Play jingle when timer completes
   useEffect(() => {
