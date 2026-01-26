@@ -3,6 +3,60 @@
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useTimerStore } from "@/store/timer-store";
 
+interface MotivationalQuote {
+  text: string;
+  author: string;
+}
+
+// Motivational quotes to show after pomodoro completion
+const MOTIVATIONAL_QUOTES: MotivationalQuote[] = [
+  {
+    text: "The secret of getting ahead is getting started.",
+    author: "Mark Twain",
+  },
+  { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+  {
+    text: "Small daily improvements lead to stunning results.",
+    author: "Robin Sharma",
+  },
+  { text: "Done is better than perfect.", author: "Sheryl Sandberg" },
+  {
+    text: "The way to get started is to quit talking and begin doing.",
+    author: "Walt Disney",
+  },
+  {
+    text: "You don't have to be great to start, but you have to start to be great.",
+    author: "Zig Ziglar",
+  },
+  { text: "Progress, not perfection.", author: "Unknown" },
+  { text: "One pomodoro at a time.", author: "Francesco Cirillo" },
+  {
+    text: "Success is the sum of small efforts repeated day in and day out.",
+    author: "Robert Collier",
+  },
+  {
+    text: "The only way to do great work is to love what you do.",
+    author: "Steve Jobs",
+  },
+  {
+    text: "Discipline is choosing between what you want now and what you want most.",
+    author: "Abraham Lincoln",
+  },
+  {
+    text: "Your future is created by what you do today, not tomorrow.",
+    author: "Robert Kiyosaki",
+  },
+  {
+    text: "It's not about having time, it's about making time.",
+    author: "Unknown",
+  },
+  {
+    text: "Every accomplishment starts with the decision to try.",
+    author: "John F. Kennedy",
+  },
+  { text: "The harder you work, the luckier you get.", author: "Gary Player" },
+];
+
 // Shared audio context helper
 function getAudioContext(): AudioContext | null {
   const AudioContextClass =
@@ -24,6 +78,7 @@ export default function Timer() {
     soundEnabled,
     endSoundType,
     clickSoundType,
+    quotesEnabled,
 
     sessions,
     setCurrentTask,
@@ -40,6 +95,8 @@ export default function Timer() {
 
   const [isEditingTask, setIsEditingTask] = useState(false);
   const [taskInput, setTaskInput] = useState("");
+  const [showQuote, setShowQuote] = useState(false);
+  const [currentQuote, setCurrentQuote] = useState(MOTIVATIONAL_QUOTES[0]);
   const workerRef = useRef<Worker | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -281,13 +338,26 @@ export default function Timer() {
   // Track previous time to detect completion
   const prevTimeRef = useRef(currentTime);
 
+  // Track previous timer type to detect work session completion
+  const prevTimerTypeRef = useRef(timerType);
+
   // Play jingle when timer completes (detects transition to 0)
   useEffect(() => {
     if (prevTimeRef.current > 0 && currentTime === 0) {
       playFinishSound();
+      // Show motivational quote if enabled and this was a work session
+      if (quotesEnabled && prevTimerTypeRef.current === "work") {
+        const randomQuote =
+          MOTIVATIONAL_QUOTES[
+            Math.floor(Math.random() * MOTIVATIONAL_QUOTES.length)
+          ];
+        setCurrentQuote(randomQuote);
+        setShowQuote(true);
+      }
     }
     prevTimeRef.current = currentTime;
-  }, [currentTime, playFinishSound]);
+    prevTimerTypeRef.current = timerType;
+  }, [currentTime, playFinishSound, quotesEnabled, timerType]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -316,6 +386,11 @@ export default function Timer() {
         case "R":
           resetTimer();
           break;
+        case "Escape":
+          if (showQuote) {
+            setShowQuote(false);
+          }
+          break;
       }
     };
 
@@ -329,6 +404,7 @@ export default function Timer() {
     resetTimer,
     startTimer,
     playClickSound,
+    showQuote,
   ]);
 
   const handleStart = () => {
@@ -505,6 +581,38 @@ export default function Timer() {
           Reset
         </button>
       </div>
+
+      {/* Motivational Quote Modal */}
+      {showQuote && (
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowQuote(false)}
+        >
+          <div
+            className="bg-white dark:bg-zinc-800 rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="text-center space-y-4">
+              <div className="text-4xl">🎉</div>
+              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
+                Great work!
+              </h3>
+              <blockquote className="text-lg text-zinc-700 dark:text-zinc-300 italic">
+                "{currentQuote.text}"
+              </blockquote>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                — {currentQuote.author}
+              </p>
+              <button
+                onClick={() => setShowQuote(false)}
+                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all shadow-md active:scale-95"
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

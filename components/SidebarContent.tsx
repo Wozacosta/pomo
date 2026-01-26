@@ -14,7 +14,9 @@ export default function SidebarContent() {
     soundEnabled,
     endSoundType,
     clickSoundType,
+    quotesEnabled,
     updateSoundSettings,
+    updateQuoteSettings,
   } = useTimerStore();
 
   return (
@@ -149,6 +151,47 @@ export default function SidebarContent() {
               <option value="click">Click</option>
               <option value="none">None</option>
             </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Quote Settings */}
+      <div>
+        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+          Motivational Quotes
+        </h3>
+        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+          <div className="flex items-center justify-between">
+            <label
+              htmlFor="quotes-enabled-toggle"
+              className="text-sm text-zinc-700 dark:text-zinc-300"
+            >
+              Show after Pomodoro
+            </label>
+            <button
+              id="quotes-enabled-toggle"
+              role="switch"
+              aria-checked={quotesEnabled}
+              aria-label="Toggle motivational quotes"
+              onClick={() =>
+                updateQuoteSettings({ quotesEnabled: !quotesEnabled })
+              }
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  updateQuoteSettings({ quotesEnabled: !quotesEnabled });
+                }
+              }}
+              className={`relative w-11 h-6 rounded-full transition-colors ${
+                quotesEnabled ? "bg-blue-600" : "bg-zinc-300 dark:bg-zinc-600"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
+                  quotesEnabled ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
           </div>
         </div>
       </div>

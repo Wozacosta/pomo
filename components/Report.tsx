@@ -73,7 +73,7 @@ export default function Report() {
     return Array.from(taskSet);
   }, [reportData]);
 
-  // Calculate totals per task
+  // Calculate totals per task (for the 7-day chart)
   const taskTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     Object.values(reportData).forEach((dayData) => {
@@ -83,6 +83,35 @@ export default function Report() {
     });
     return totals;
   }, [reportData]);
+
+  // Calculate total hours overall (all sessions ever)
+  const totalMinutesOverall = useMemo(() => {
+    return sessions
+      .filter((s) => s.completed && s.endTime)
+      .reduce((sum, session) => sum + session.duration, 0);
+  }, [sessions]);
+
+  // Calculate total hours this week (last 7 days)
+  const totalMinutesThisWeek = useMemo(() => {
+    const now = new Date();
+    const weekAgo = new Date();
+    weekAgo.setDate(now.getDate() - 7);
+    weekAgo.setHours(0, 0, 0, 0);
+
+    return sessions
+      .filter((s) => {
+        if (!s.completed || !s.endTime) return false;
+        const sessionDate = new Date(s.endTime);
+        return sessionDate >= weekAgo;
+      })
+      .reduce((sum, session) => sum + session.duration, 0);
+  }, [sessions]);
+
+  // Format hours with decimal
+  const formatHours = (minutes: number) => {
+    const hours = minutes / 60;
+    return hours.toFixed(1);
+  };
 
   // Format time
   const formatTime = (minutes: number) => {
@@ -115,6 +144,26 @@ export default function Report() {
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
         Report
       </h2>
+
+      {/* Total Hours Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-xl border border-blue-200 dark:border-blue-800 shadow-sm">
+          <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+            Total Hours Overall
+          </div>
+          <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+            {formatHours(totalMinutesOverall)}h
+          </div>
+        </div>
+        <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-xl border border-green-200 dark:border-green-800 shadow-sm">
+          <div className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+            Hours This Week
+          </div>
+          <div className="text-3xl font-bold text-green-900 dark:text-green-100">
+            {formatHours(totalMinutesThisWeek)}h
+          </div>
+        </div>
+      </div>
 
       {/* Chart */}
       <div className="bg-white dark:bg-zinc-800 rounded-xl p-6 border border-zinc-200 dark:border-zinc-700 shadow-sm">

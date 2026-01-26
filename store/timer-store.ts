@@ -45,6 +45,9 @@ export interface TimerState {
   endSoundType: EndSoundType;
   clickSoundType: ClickSoundType;
 
+  // Quote settings
+  quotesEnabled: boolean;
+
   // Tasks
   tasks: Task[];
 
@@ -76,6 +79,7 @@ export interface TimerState {
     endSoundType?: EndSoundType;
     clickSoundType?: ClickSoundType;
   }) => void;
+  updateQuoteSettings: (settings: { quotesEnabled?: boolean }) => void;
 }
 
 export const useTimerStore = create<TimerState>()(
@@ -97,6 +101,8 @@ export const useTimerStore = create<TimerState>()(
       soundEnabled: true,
       endSoundType: "jingle",
       clickSoundType: "click",
+
+      quotesEnabled: true,
 
       tasks: [],
       sessions: [],
@@ -309,10 +315,16 @@ export const useTimerStore = create<TimerState>()(
           clickSoundType: settings.clickSoundType ?? get().clickSoundType,
         });
       },
+
+      updateQuoteSettings: (settings) => {
+        set({
+          quotesEnabled: settings.quotesEnabled ?? get().quotesEnabled,
+        });
+      },
     }),
     {
       name: "pomodoro-timer-storage",
-      version: 1,
+      version: 2,
       migrate: (persistedState: unknown, version: number) => {
         const state = persistedState as Partial<TimerState>;
         if (version === 0) {
@@ -322,6 +334,14 @@ export const useTimerStore = create<TimerState>()(
             soundEnabled: state.soundEnabled ?? true,
             endSoundType: state.endSoundType ?? "jingle",
             clickSoundType: state.clickSoundType ?? "click",
+            quotesEnabled: true,
+          };
+        }
+        if (version === 1) {
+          // Migration from version 1: add quotes settings
+          return {
+            ...state,
+            quotesEnabled: state.quotesEnabled ?? true,
           };
         }
         return state as TimerState;

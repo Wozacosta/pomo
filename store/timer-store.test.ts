@@ -672,4 +672,26 @@ describe("timer-store", () => {
       expect(session.taskId).toBe("task-123");
     });
   });
+
+  describe("updateQuoteSettings()", () => {
+    it("updates quotesEnabled", () => {
+      useTimerStore.setState({ quotesEnabled: true });
+      useTimerStore.getState().updateQuoteSettings({ quotesEnabled: false });
+
+      expect(useTimerStore.getState().quotesEnabled).toBe(false);
+    });
+
+    it("preserves existing value when not provided", () => {
+      useTimerStore.setState({ quotesEnabled: true });
+      useTimerStore.getState().updateQuoteSettings({});
+
+      expect(useTimerStore.getState().quotesEnabled).toBe(true);
+    });
+
+    it("defaults quotesEnabled to true", () => {
+      // Verify the initial state has quotesEnabled = true
+      const initialState = useTimerStore.getState();
+      expect(initialState.quotesEnabled).toBe(true);
+    });
+  });
 });

@@ -283,4 +283,76 @@ describe("Report component", () => {
     expect(screen.getByText("Sun")).toBeInTheDocument();
     expect(screen.getByText("Sat")).toBeInTheDocument(); // Jan 24
   });
+
+  it("displays total hours overall", () => {
+    const jan25 = new Date("2026-01-25T10:00:00");
+    const jan10 = new Date("2026-01-10T10:00:00"); // Outside 7-day window
+
+    useTimerStore.setState({
+      sessions: [
+        {
+          id: "1",
+          duration: 60, // 1 hour
+          startTime: jan25.getTime() - 60 * 60 * 1000,
+          endTime: jan25.getTime(),
+          completed: true,
+          subject: "Recent",
+        },
+        {
+          id: "2",
+          duration: 120, // 2 hours (outside 7-day window)
+          startTime: jan10.getTime() - 120 * 60 * 1000,
+          endTime: jan10.getTime(),
+          completed: true,
+          subject: "Old",
+        },
+      ],
+    });
+
+    render(<Report />);
+
+    // Total overall: 60 + 120 = 180 minutes = 3.0 hours
+    expect(screen.getByText("Total Hours Overall")).toBeInTheDocument();
+    expect(screen.getByText("3.0h")).toBeInTheDocument();
+  });
+
+  it("displays hours this week correctly", () => {
+    const jan25 = new Date("2026-01-25T10:00:00");
+    const jan10 = new Date("2026-01-10T10:00:00"); // Outside 7-day window
+
+    useTimerStore.setState({
+      sessions: [
+        {
+          id: "1",
+          duration: 90, // 1.5 hours (within 7 days)
+          startTime: jan25.getTime() - 90 * 60 * 1000,
+          endTime: jan25.getTime(),
+          completed: true,
+          subject: "Recent",
+        },
+        {
+          id: "2",
+          duration: 120, // 2 hours (outside 7-day window)
+          startTime: jan10.getTime() - 120 * 60 * 1000,
+          endTime: jan10.getTime(),
+          completed: true,
+          subject: "Old",
+        },
+      ],
+    });
+
+    render(<Report />);
+
+    // Hours this week: 90 minutes = 1.5 hours
+    expect(screen.getByText("Hours This Week")).toBeInTheDocument();
+    expect(screen.getByText("1.5h")).toBeInTheDocument();
+  });
+
+  it("shows 0.0h when no sessions exist", () => {
+    render(<Report />);
+
+    // Both "Total Hours Overall" and "Hours This Week" show 0.0h
+    const zeroHours = screen.getAllByText("0.0h");
+    expect(zeroHours).toHaveLength(2);
+  });
 });
