@@ -42,3 +42,10 @@ pnpm-debug.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# bmad
+/_bmad/
+!/_bmad-output/
+
+# claude
+/.claude/
