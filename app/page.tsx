@@ -9,6 +9,7 @@ import Report from "@/components/Report";
 import MobileNav from "@/components/MobileNav";
 import NavButton from "@/components/NavButton";
 import { useThemeStore } from "@/store/theme-store";
+import { useTimerWorker } from "@/hooks/useTimerWorker";
 import { View, MobileTab } from "@/types/navigation";
 
 // Height of mobile bottom nav (h-16 = 64px) - used for content padding
@@ -19,6 +20,9 @@ export default function Home() {
   const [currentView, setCurrentView] = useState<View>("timer");
   const [mobileTab, setMobileTab] = useState<MobileTab>("timer");
   const { theme, setTheme } = useThemeStore();
+
+  // Timer worker must be mounted here (top level) so it persists across view switches
+  useTimerWorker();
 
   // Reset currentView to timer when switching mobile tabs (F5 fix)
   const handleMobileTabChange = (tab: MobileTab) => {

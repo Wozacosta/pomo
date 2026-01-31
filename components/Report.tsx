@@ -2,10 +2,35 @@
 
 import { useMemo, useState } from "react";
 import { useTimerStore } from "@/store/timer-store";
+import { formatTime, getTimerLabel } from "@/lib/timer-utils";
 
 export default function Report() {
-  const { sessions, tasks } = useTimerStore();
+  const {
+    sessions,
+    tasks,
+    isRunning,
+    isPaused,
+    currentTime,
+    timerType,
+    currentTaskName,
+  } = useTimerStore();
   const [hoveredDay, setHoveredDay] = useState<string | null>(null);
+
+  // Format countdown for active timer indicator
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const timerLabel =
+    timerType === "work"
+      ? "Pomodoro"
+      : timerType === "shortBreak"
+        ? "Short Break"
+        : "Long Break";
+
+  const timerActive = isRunning || isPaused;
 
   // Group sessions by date and task
   const reportData = useMemo(() => {
@@ -144,6 +169,31 @@ export default function Report() {
       <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
         Report
       </h2>
+
+      {/* Active Timer Indicator */}
+      {timerActive && (
+        <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-950 rounded-xl border border-blue-200 dark:border-blue-800">
+          <div
+            className={`w-2 h-2 rounded-full ${isPaused ? "bg-yellow-500" : "bg-blue-500 animate-pulse"}`}
+          />
+          <span className="text-lg font-bold tabular-nums text-blue-900 dark:text-blue-100">
+            {formatCountdown(currentTime)}
+          </span>
+          <span className="text-sm text-blue-700 dark:text-blue-300">
+            {timerLabel}
+          </span>
+          {currentTaskName && (
+            <span className="text-sm text-blue-600 dark:text-blue-400">
+              — {currentTaskName}
+            </span>
+          )}
+          {isPaused && (
+            <span className="text-xs font-medium text-yellow-700 dark:text-yellow-300 bg-yellow-100 dark:bg-yellow-900 px-2 py-0.5 rounded-full">
+              Paused
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Total Hours Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

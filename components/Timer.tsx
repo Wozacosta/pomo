@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useTimerStore } from "@/store/timer-store";
+import { playClickSound as playClick } from "@/lib/sounds";
+import { formatTime } from "@/lib/timer-utils";
 
 interface MotivationalQuote {
   text: string;
@@ -57,16 +59,6 @@ const MOTIVATIONAL_QUOTES: MotivationalQuote[] = [
   { text: "The harder you work, the luckier you get.", author: "Gary Player" },
 ];
 
-// Shared audio context helper
-function getAudioContext(): AudioContext | null {
-  const AudioContextClass =
-    window.AudioContext ||
-    (window as typeof window & { webkitAudioContext?: typeof AudioContext })
-      .webkitAudioContext;
-  if (!AudioContextClass) return null;
-  return new AudioContextClass();
-}
-
 export default function Timer() {
   const {
     isRunning,
@@ -75,9 +67,6 @@ export default function Timer() {
     duration,
     timerType,
     currentTaskName,
-    soundEnabled,
-    endSoundType,
-    clickSoundType,
     quotesEnabled,
 
     sessions,
@@ -88,7 +77,6 @@ export default function Timer() {
     resumeTimer,
     resetTimer,
     setTimerType,
-    tick,
   } = useTimerStore();
 
   const completedSessionsCount = sessions.filter((s) => s.completed).length;
@@ -97,255 +85,24 @@ export default function Timer() {
   const [taskInput, setTaskInput] = useState("");
   const [showQuote, setShowQuote] = useState(false);
   const [currentQuote, setCurrentQuote] = useState(MOTIVATIONAL_QUOTES[0]);
-  const workerRef = useRef<Worker | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-
-  // Get or create shared AudioContext
-  const getSharedAudioContext =
-    useCallback(async (): Promise<AudioContext | null> => {
-      try {
-        if (!audioContextRef.current) {
-          audioContextRef.current = getAudioContext();
-        }
-        if (audioContextRef.current?.state === "suspended") {
-          await audioContextRef.current.resume();
-        }
-        return audioContextRef.current;
-      } catch {
-        return null;
-      }
-    }, []);
-
-  // Initialize Web Worker for background timer
-  useEffect(() => {
-    workerRef.current = new Worker("/timer-worker.js");
-    workerRef.current.onmessage = () => {
-      tick();
-    };
-    return () => {
-      workerRef.current?.terminate();
-    };
-  }, [tick]);
-
-  // Cleanup AudioContext on unmount
-  useEffect(() => {
-    return () => {
-      audioContextRef.current?.close();
-    };
-  }, []);
-
-  // Start/stop worker based on timer state
-  useEffect(() => {
-    if (isRunning && !isPaused) {
-      workerRef.current?.postMessage("start");
-    } else {
-      workerRef.current?.postMessage("stop");
-    }
-  }, [isRunning, isPaused]);
-
-  // Update document title with countdown
-  useEffect(() => {
-    const label =
-      timerType === "work"
-        ? "Pomodoro"
-        : timerType === "shortBreak"
-          ? "Short Break"
-          : "Long Break";
-
-    if (isRunning || isPaused) {
-      document.title = `${formatTime(currentTime)} - ${label}`;
-    } else {
-      document.title = "Pomodoro Timer";
-    }
-
-    return () => {
-      document.title = "Pomodoro Timer";
-    };
-  }, [currentTime, timerType, isRunning, isPaused]);
-
-  // Format time display
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
-  };
 
   // Calculate progress percentage
   const progress = ((duration - currentTime) / duration) * 100;
 
-  // Play click sound when timer starts
-  const playClickSound = useCallback(async () => {
-    if (!soundEnabled || clickSoundType === "none") return;
-
-    const audioContext = await getSharedAudioContext();
-    if (!audioContext) return;
-
-    try {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = 1200;
-      oscillator.type = "sine";
-
-      gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.01,
-        audioContext.currentTime + 0.05,
-      );
-
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.05);
-    } catch {
-      // Audio playback failed
+  const handleClickSound = () => {
+    const { soundEnabled, clickSoundType } = useTimerStore.getState();
+    if (soundEnabled && clickSoundType !== "none") {
+      playClick();
     }
-  }, [getSharedAudioContext, soundEnabled, clickSoundType]);
+  };
 
-  // Play jingle sound (C5, E5, G5 major chord arpeggio)
-  const playJingleSound = useCallback(async (audioContext: AudioContext) => {
-    const notes = [523.25, 659.25, 783.99];
-    const noteDuration = 0.15;
-
-    notes.forEach((freq, i) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = freq;
-      oscillator.type = "sine";
-
-      const startTime = audioContext.currentTime + i * noteDuration;
-      gainNode.gain.setValueAtTime(0.3, startTime);
-      gainNode.gain.exponentialRampToValueAtTime(
-        0.01,
-        startTime + noteDuration * 1.5,
-      );
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + noteDuration * 1.5);
-    });
-  }, []);
-
-  // Play bird chirping sound
-  const playBirdsSound = useCallback(async (audioContext: AudioContext) => {
-    // Create multiple chirps with varying frequencies
-    const chirps = [
-      { freq: 2500, delay: 0 },
-      { freq: 3000, delay: 0.1 },
-      { freq: 2800, delay: 0.15 },
-      { freq: 3200, delay: 0.3 },
-      { freq: 2600, delay: 0.35 },
-      { freq: 3100, delay: 0.5 },
-    ];
-
-    chirps.forEach(({ freq, delay }) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = freq;
-      oscillator.type = "sine";
-
-      // Add frequency modulation for more natural chirp
-      const startTime = audioContext.currentTime + delay;
-      oscillator.frequency.setValueAtTime(freq, startTime);
-      oscillator.frequency.exponentialRampToValueAtTime(
-        freq * 1.2,
-        startTime + 0.03,
-      );
-      oscillator.frequency.exponentialRampToValueAtTime(
-        freq * 0.8,
-        startTime + 0.06,
-      );
-
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.2, startTime + 0.01);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.08);
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + 0.1);
-    });
-  }, []);
-
-  // Play ring/bell sound
-  const playRingSound = useCallback(async (audioContext: AudioContext) => {
-    // Bell-like sound using multiple harmonics
-    const fundamentalFreq = 800;
-    const harmonics = [1, 2, 3, 4.5];
-    const duration = 0.8;
-
-    harmonics.forEach((harmonic, i) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-
-      oscillator.frequency.value = fundamentalFreq * harmonic;
-      oscillator.type = "sine";
-
-      const startTime = audioContext.currentTime;
-      // Higher harmonics are quieter
-      const volume = 0.25 / (i + 1);
-      gainNode.gain.setValueAtTime(volume, startTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    });
-  }, []);
-
-  // Play finish sound based on selected type
-  const playFinishSound = useCallback(async () => {
-    if (!soundEnabled || endSoundType === "none") return;
-
-    const audioContext = await getSharedAudioContext();
-    if (!audioContext) return;
-
-    try {
-      switch (endSoundType) {
-        case "jingle":
-          await playJingleSound(audioContext);
-          break;
-        case "birds":
-          await playBirdsSound(audioContext);
-          break;
-        case "ring":
-          await playRingSound(audioContext);
-          break;
-        default:
-          // Unknown sound type, fall back to jingle
-          await playJingleSound(audioContext);
-      }
-    } catch {
-      // Audio playback failed
-    }
-  }, [
-    getSharedAudioContext,
-    soundEnabled,
-    endSoundType,
-    playJingleSound,
-    playBirdsSound,
-    playRingSound,
-  ]);
-
-  // Track previous time to detect completion
+  // Track previous time to detect completion (for quote modal)
   const prevTimeRef = useRef(currentTime);
-
-  // Track previous timer type to detect work session completion
   const prevTimerTypeRef = useRef(timerType);
 
-  // Play jingle when timer completes (detects transition to 0)
+  // Show motivational quote when timer completes
   useEffect(() => {
     if (prevTimeRef.current > 0 && currentTime === 0) {
-      playFinishSound();
-      // Show motivational quote if enabled and this was a work session
       if (quotesEnabled && prevTimerTypeRef.current === "work") {
         const randomQuote =
           MOTIVATIONAL_QUOTES[
@@ -357,7 +114,7 @@ export default function Timer() {
     }
     prevTimeRef.current = currentTime;
     prevTimerTypeRef.current = timerType;
-  }, [currentTime, playFinishSound, quotesEnabled, timerType]);
+  }, [currentTime, quotesEnabled, timerType]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -378,7 +135,7 @@ export default function Timer() {
           } else if (isPaused) {
             resumeTimer();
           } else {
-            playClickSound();
+            handleClickSound();
             startTimer();
           }
           break;
@@ -403,7 +160,6 @@ export default function Timer() {
     resumeTimer,
     resetTimer,
     startTimer,
-    playClickSound,
     showQuote,
   ]);
 
@@ -411,7 +167,7 @@ export default function Timer() {
     if (isPaused) {
       resumeTimer();
     } else {
-      playClickSound();
+      handleClickSound();
       startTimer();
     }
   };

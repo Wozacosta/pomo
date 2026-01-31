@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import Timer from "./Timer";
 import { useTimerStore } from "@/store/timer-store";
-import { resetTimerStore, mockWorkerInstance } from "../vitest.setup";
+import { resetTimerStore } from "../vitest.setup";
 
 describe("Timer component", () => {
   beforeEach(() => {
@@ -201,25 +201,6 @@ describe("Timer component", () => {
     );
   });
 
-  it("worker tick simulation triggers tick()", async () => {
-    vi.useFakeTimers();
-    render(<Timer />);
-
-    // Start the timer
-    useTimerStore.getState().startTimer();
-
-    // Advance time and simulate worker tick
-    vi.advanceTimersByTime(1000);
-    mockWorkerInstance.simulateTick();
-
-    // tick() should have been called, updating currentTime
-    // Since we can't easily verify tick was called without spying,
-    // we verify the worker's onmessage was set up
-    expect(mockWorkerInstance.onmessage).not.toBeNull();
-
-    vi.useRealTimers();
-  });
-
   it("task input closes on Escape key", async () => {
     const user = userEvent.setup();
     render(<Timer />);
@@ -227,7 +208,8 @@ describe("Timer component", () => {
     await user.click(screen.getByRole("button", { name: "+ Add focus task" }));
     const input = screen.getByPlaceholderText("What are you focusing on?");
 
-    await user.type(input, "Some text{Escape}");
+    await user.type(input, "Some text");
+    fireEvent.keyDown(input, { key: "Escape" });
 
     // Input should be hidden
     expect(
@@ -262,28 +244,25 @@ describe("Timer component", () => {
   });
 
   describe("keyboard shortcuts", () => {
-    it("Space key starts timer when not running", async () => {
-      const user = userEvent.setup();
+    it("Space key starts timer when not running", () => {
       render(<Timer />);
 
-      await user.keyboard(" ");
+      fireEvent.keyDown(window, { key: " " });
 
       expect(useTimerStore.getState().isRunning).toBe(true);
     });
 
-    it("Space key pauses timer when running", async () => {
-      const user = userEvent.setup();
+    it("Space key pauses timer when running", () => {
       useTimerStore.getState().startTimer();
       render(<Timer />);
 
-      await user.keyboard(" ");
+      fireEvent.keyDown(window, { key: " " });
 
       expect(useTimerStore.getState().isPaused).toBe(true);
       expect(useTimerStore.getState().isRunning).toBe(false);
     });
 
-    it("Space key resumes timer when paused", async () => {
-      const user = userEvent.setup();
+    it("Space key resumes timer when paused", () => {
       useTimerStore.setState({
         isPaused: true,
         isRunning: false,
@@ -291,31 +270,29 @@ describe("Timer component", () => {
       });
       render(<Timer />);
 
-      await user.keyboard(" ");
+      fireEvent.keyDown(window, { key: " " });
 
       expect(useTimerStore.getState().isRunning).toBe(true);
       expect(useTimerStore.getState().isPaused).toBe(false);
     });
 
-    it("R key resets timer", async () => {
-      const user = userEvent.setup();
+    it("R key resets timer", () => {
       useTimerStore.getState().startTimer();
       useTimerStore.setState({ currentTime: 600 });
       render(<Timer />);
 
-      await user.keyboard("r");
+      fireEvent.keyDown(window, { key: "r" });
 
       expect(useTimerStore.getState().isRunning).toBe(false);
       expect(useTimerStore.getState().currentTime).toBe(25 * 60);
     });
 
-    it("Shift+R key also resets timer", async () => {
-      const user = userEvent.setup();
+    it("Shift+R key also resets timer", () => {
       useTimerStore.getState().startTimer();
       useTimerStore.setState({ currentTime: 600 });
       render(<Timer />);
 
-      await user.keyboard("R");
+      fireEvent.keyDown(window, { key: "R" });
 
       expect(useTimerStore.getState().isRunning).toBe(false);
       expect(useTimerStore.getState().currentTime).toBe(25 * 60);
@@ -330,49 +307,42 @@ describe("Timer component", () => {
       );
       const input = screen.getByPlaceholderText("What are you focusing on?");
 
-      // Type space in input - should not start timer
-      await user.type(input, " ");
+      // Fire space key on the input element - handler should skip it
+      fireEvent.keyDown(input, { key: " " });
 
       expect(useTimerStore.getState().isRunning).toBe(false);
     });
   });
 
   describe("task editing", () => {
-    it("Edit button opens task input with current task name", async () => {
-      const user = userEvent.setup();
+    it("Edit button opens task input with current task name", () => {
       useTimerStore.setState({ currentTaskName: "Current Task" });
       render(<Timer />);
 
-      await user.click(screen.getByRole("button", { name: "Edit" }));
+      fireEvent.click(screen.getByRole("button", { name: "Edit" }));
 
       const input = screen.getByPlaceholderText("What are you focusing on?");
       expect(input).toHaveValue("Current Task");
     });
 
-    it("Save button submits task input", async () => {
-      const user = userEvent.setup();
+    it("Save button submits task input", () => {
       render(<Timer />);
 
-      await user.click(
-        screen.getByRole("button", { name: "+ Add focus task" }),
-      );
-      await user.type(
+      fireEvent.click(screen.getByRole("button", { name: "+ Add focus task" }));
+      fireEvent.change(
         screen.getByPlaceholderText("What are you focusing on?"),
-        "My Task",
+        { target: { value: "My Task" } },
       );
-      await user.click(screen.getByRole("button", { name: "Save" }));
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
       expect(useTimerStore.getState().currentTaskName).toBe("My Task");
     });
 
-    it("empty task input does not submit", async () => {
-      const user = userEvent.setup();
+    it("empty task input does not submit", () => {
       render(<Timer />);
 
-      await user.click(
-        screen.getByRole("button", { name: "+ Add focus task" }),
-      );
-      await user.click(screen.getByRole("button", { name: "Save" }));
+      fireEvent.click(screen.getByRole("button", { name: "+ Add focus task" }));
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
       // Input should still be visible
       expect(
@@ -381,18 +351,15 @@ describe("Timer component", () => {
       expect(useTimerStore.getState().currentTaskName).toBeUndefined();
     });
 
-    it("whitespace-only task input does not submit", async () => {
-      const user = userEvent.setup();
+    it("whitespace-only task input does not submit", () => {
       render(<Timer />);
 
-      await user.click(
-        screen.getByRole("button", { name: "+ Add focus task" }),
-      );
-      await user.type(
+      fireEvent.click(screen.getByRole("button", { name: "+ Add focus task" }));
+      fireEvent.change(
         screen.getByPlaceholderText("What are you focusing on?"),
-        "   ",
+        { target: { value: "   " } },
       );
-      await user.click(screen.getByRole("button", { name: "Save" }));
+      fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
       // Input should still be visible
       expect(
@@ -415,8 +382,7 @@ describe("Timer component", () => {
       ).toBeInTheDocument();
     });
 
-    it("Resume button calls resumeTimer", async () => {
-      const user = userEvent.setup();
+    it("Resume button calls resumeTimer", () => {
       useTimerStore.setState({
         isRunning: true,
         isPaused: true,
@@ -424,57 +390,15 @@ describe("Timer component", () => {
       });
       render(<Timer />);
 
-      await user.click(screen.getByRole("button", { name: "Resume" }));
+      fireEvent.click(screen.getByRole("button", { name: "Resume" }));
 
       expect(useTimerStore.getState().isRunning).toBe(true);
       expect(useTimerStore.getState().isPaused).toBe(false);
     });
   });
 
-  describe("document title", () => {
-    it("updates document title when timer is running", () => {
-      useTimerStore.setState({
-        isRunning: true,
-        currentTime: 24 * 60 + 30, // 24:30
-        timerType: "work",
-      });
-      render(<Timer />);
-
-      expect(document.title).toBe("24:30 - Pomodoro");
-    });
-
-    it("updates document title for short break", () => {
-      useTimerStore.setState({
-        isRunning: true,
-        currentTime: 4 * 60, // 04:00
-        timerType: "shortBreak",
-      });
-      render(<Timer />);
-
-      expect(document.title).toBe("04:00 - Short Break");
-    });
-
-    it("updates document title for long break", () => {
-      useTimerStore.setState({
-        isRunning: true,
-        currentTime: 14 * 60, // 14:00
-        timerType: "longBreak",
-      });
-      render(<Timer />);
-
-      expect(document.title).toBe("14:00 - Long Break");
-    });
-
-    it("resets document title when timer is not running", () => {
-      useTimerStore.setState({
-        isRunning: false,
-        isPaused: false,
-      });
-      render(<Timer />);
-
-      expect(document.title).toBe("Pomodoro Timer");
-    });
-  });
+  // Note: document title tests moved to hooks/useTimerWorker.test.ts
+  // since title management was extracted to the useTimerWorker hook.
 
   describe("time formatting", () => {
     it("formats single digit minutes with leading zero", () => {
