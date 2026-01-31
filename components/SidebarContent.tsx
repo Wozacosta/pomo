@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef, useState } from "react";
 import { useTimerStore } from "@/store/timer-store";
 import type { EndSoundType, ClickSoundType } from "@/store/timer-store";
 import { previewEndSound, previewClickSound } from "@/lib/sounds";
@@ -17,7 +18,41 @@ export default function SidebarContent() {
     quotesEnabled,
     updateSoundSettings,
     updateQuoteSettings,
+    exportData,
+    importData,
   } = useTimerStore();
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [importStatus, setImportStatus] = useState<{
+    type: "success" | "error";
+    message: string;
+  } | null>(null);
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const result = importData(event.target?.result as string);
+      if (result.success) {
+        setImportStatus({
+          type: "success",
+          message: "Data imported successfully.",
+        });
+      } else {
+        setImportStatus({
+          type: "error",
+          message: result.error || "Import failed.",
+        });
+      }
+      setTimeout(() => setImportStatus(null), 3000);
+    };
+    reader.readAsText(file);
+
+    // Reset input so the same file can be re-imported
+    e.target.value = "";
+  };
 
   return (
     <div className="space-y-6">
@@ -193,6 +228,47 @@ export default function SidebarContent() {
               />
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Data Management */}
+      <div>
+        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+          Data
+        </h3>
+        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+          <div className="flex gap-2">
+            <button
+              onClick={exportData}
+              className="flex-1 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+            >
+              Export
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-colors"
+            >
+              Import
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json"
+              onChange={handleImport}
+              className="hidden"
+            />
+          </div>
+          {importStatus && (
+            <div
+              className={`text-xs px-2 py-1.5 rounded-lg ${
+                importStatus.type === "success"
+                  ? "text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-950"
+                  : "text-red-700 dark:text-red-300 bg-red-50 dark:bg-red-950"
+              }`}
+            >
+              {importStatus.message}
+            </div>
+          )}
         </div>
       </div>
 

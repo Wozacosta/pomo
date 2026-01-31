@@ -80,6 +80,8 @@ export interface TimerState {
     clickSoundType?: ClickSoundType;
   }) => void;
   updateQuoteSettings: (settings: { quotesEnabled?: boolean }) => void;
+  exportData: () => void;
+  importData: (jsonString: string) => { success: boolean; error?: string };
 }
 
 export const useTimerStore = create<TimerState>()(
@@ -320,6 +322,98 @@ export const useTimerStore = create<TimerState>()(
         set({
           quotesEnabled: settings.quotesEnabled ?? get().quotesEnabled,
         });
+      },
+
+      exportData: () => {
+        const state = get();
+        const musicLinks = localStorage.getItem("pomodoro-custom-music-links");
+        const themeData = localStorage.getItem("pomodoro-theme-storage");
+
+        const exportPayload = {
+          version: 1,
+          exportedAt: new Date().toISOString(),
+          timer: {
+            sessions: state.sessions,
+            tasks: state.tasks,
+            totalCompleted: state.totalCompleted,
+            currentStreak: state.currentStreak,
+            longestStreak: state.longestStreak,
+            workDuration: state.workDuration,
+            shortBreakDuration: state.shortBreakDuration,
+            longBreakDuration: state.longBreakDuration,
+            soundEnabled: state.soundEnabled,
+            endSoundType: state.endSoundType,
+            clickSoundType: state.clickSoundType,
+            quotesEnabled: state.quotesEnabled,
+          },
+          musicLinks: musicLinks ? JSON.parse(musicLinks) : [],
+          theme: themeData ? JSON.parse(themeData) : null,
+        };
+
+        const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `pomodoro-backup-${new Date().toISOString().split("T")[0]}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      importData: (jsonString: string) => {
+        try {
+          const data = JSON.parse(jsonString);
+
+          if (!data.version || !data.timer) {
+            return { success: false, error: "Invalid backup file format." };
+          }
+
+          const { timer, musicLinks, theme } = data;
+
+          // Validate core arrays
+          if (!Array.isArray(timer.sessions) || !Array.isArray(timer.tasks)) {
+            return { success: false, error: "Invalid data structure." };
+          }
+
+          set({
+            sessions: timer.sessions,
+            tasks: timer.tasks,
+            totalCompleted: timer.totalCompleted ?? 0,
+            currentStreak: timer.currentStreak ?? 0,
+            longestStreak: timer.longestStreak ?? 0,
+            workDuration: timer.workDuration ?? 25,
+            shortBreakDuration: timer.shortBreakDuration ?? 5,
+            longBreakDuration: timer.longBreakDuration ?? 15,
+            soundEnabled: timer.soundEnabled ?? true,
+            endSoundType: timer.endSoundType ?? "jingle",
+            clickSoundType: timer.clickSoundType ?? "click",
+            quotesEnabled: timer.quotesEnabled ?? true,
+            // Reset active timer state
+            isRunning: false,
+            isPaused: false,
+            endTime: null,
+            pausedTimeRemaining: null,
+          });
+
+          if (Array.isArray(musicLinks)) {
+            localStorage.setItem(
+              "pomodoro-custom-music-links",
+              JSON.stringify(musicLinks),
+            );
+          }
+
+          if (theme) {
+            localStorage.setItem(
+              "pomodoro-theme-storage",
+              JSON.stringify(theme),
+            );
+          }
+
+          return { success: true };
+        } catch {
+          return { success: false, error: "Failed to parse backup file." };
+        }
       },
     }),
     {
