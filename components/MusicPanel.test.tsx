@@ -19,7 +19,6 @@ describe("MusicPanel", () => {
       expect(screen.getByText("NTS Radio")).toBeInTheDocument();
       expect(screen.getByText("Do You World")).toBeInTheDocument();
       expect(screen.getByText("Lo-Fi Hip Hop")).toBeInTheDocument();
-      expect(screen.getByText("Deep Focus")).toBeInTheDocument();
     });
 
     it("renders category filter buttons", () => {
@@ -67,7 +66,6 @@ describe("MusicPanel", () => {
 
       expect(screen.queryByText("NTS Radio")).not.toBeInTheDocument();
       expect(screen.getByText("Lo-Fi Hip Hop")).toBeInTheDocument();
-      expect(screen.getByText("Deep Focus")).toBeInTheDocument();
     });
   });
 

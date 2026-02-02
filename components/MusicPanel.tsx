@@ -30,9 +30,9 @@ const defaultMusicLinks: MusicLink[] = [
   },
   {
     id: "4",
-    title: "Deep Focus",
-    url: "https://www.youtube.com/watch?v=5qap5aO4i9A",
-    category: "YouTube",
+    title: "SomaFM",
+    url: "https://somafm.com/",
+    category: "Radio",
   },
 ];
 
