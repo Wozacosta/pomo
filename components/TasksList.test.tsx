@@ -51,7 +51,7 @@ describe("TasksList component", () => {
     render(<TasksList />);
 
     // Click the + button (accessible by SVG content)
-    const addButton = screen.getByRole("button", { name: "" }); // SVG button
+    const addButton = screen.getByRole("button", { name: "Add task" });
     await user.click(addButton);
 
     expect(screen.getByPlaceholderText("Task name...")).toBeInTheDocument();
@@ -64,7 +64,7 @@ describe("TasksList component", () => {
     render(<TasksList />);
 
     // Click + button to show form
-    const addButton = screen.getByRole("button", { name: "" });
+    const addButton = screen.getByRole("button", { name: "Add task" });
     await user.click(addButton);
 
     const input = screen.getByPlaceholderText("Task name...");
@@ -81,7 +81,7 @@ describe("TasksList component", () => {
     render(<TasksList />);
 
     // Click + button to show form
-    const addButton = screen.getByRole("button", { name: "" });
+    const addButton = screen.getByRole("button", { name: "Add task" });
     await user.click(addButton);
 
     const input = screen.getByPlaceholderText("Task name...");
@@ -307,7 +307,7 @@ describe("TasksList component", () => {
     render(<TasksList />);
 
     // Find the task container elements
-    const taskContainers = document.querySelectorAll(".p-3.bg-zinc-50");
+    const taskContainers = screen.getAllByTestId("task-item");
     expect(taskContainers.length).toBe(2);
 
     // First task should have ring-2 ring-blue-500 classes
@@ -323,7 +323,7 @@ describe("TasksList component", () => {
     render(<TasksList />);
 
     // Click + button to show form
-    const addButton = screen.getByRole("button", { name: "" });
+    const addButton = screen.getByRole("button", { name: "Add task" });
     await user.click(addButton);
 
     expect(screen.getByPlaceholderText("Task name...")).toBeInTheDocument();
@@ -334,5 +334,87 @@ describe("TasksList component", () => {
     expect(
       screen.queryByPlaceholderText("Task name..."),
     ).not.toBeInTheDocument();
+  });
+
+  it("new task can be created with a custom goal", async () => {
+    const user = userEvent.setup();
+    render(<TasksList />);
+
+    await user.click(screen.getByRole("button", { name: "Add task" }));
+    await user.type(screen.getByPlaceholderText("Task name..."), "Read book");
+
+    const goalInput = screen.getByLabelText("Goal (pomodoros)");
+    await user.clear(goalInput);
+    await user.type(goalInput, "8");
+    await user.click(screen.getByRole("button", { name: "Increase goal" }));
+    await user.click(screen.getByRole("button", { name: "Add" }));
+
+    const tasks = useTimerStore.getState().tasks;
+    expect(tasks[0].name).toBe("Read book");
+    expect(tasks[0].targetPomodoros).toBe(9);
+  });
+
+  it("editing a task updates its goal", async () => {
+    const user = userEvent.setup();
+    useTimerStore.setState({
+      tasks: [
+        {
+          id: "task-1",
+          name: "Study React",
+          targetPomodoros: 20,
+          completedPomodoros: 3,
+          createdAt: Date.now(),
+        },
+      ],
+    });
+    render(<TasksList />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Edit goal for Study React" }),
+    );
+    const goalInput = screen.getByLabelText("Goal (pomodoros)");
+    expect(goalInput).toHaveValue(20);
+
+    await user.clear(goalInput);
+    await user.type(goalInput, "5{Enter}");
+
+    expect(useTimerStore.getState().tasks[0].targetPomodoros).toBe(5);
+    expect(useTimerStore.getState().tasks[0].name).toBe("Study React");
+    expect(screen.getByText("3 / 5")).toBeInTheDocument();
+  });
+
+  it("goal cannot go below 1", async () => {
+    const user = userEvent.setup();
+    render(<TasksList />);
+
+    await user.click(screen.getByRole("button", { name: "Add task" }));
+    const goalInput = screen.getByLabelText("Goal (pomodoros)");
+    await user.clear(goalInput);
+    await user.type(goalInput, "0");
+
+    expect(
+      screen.getByRole("button", { name: "Decrease goal" }),
+    ).toBeDisabled();
+  });
+
+  it("progress bar reflects completed pomodoros", () => {
+    useTimerStore.setState({
+      tasks: [
+        {
+          id: "task-1",
+          name: "Study React",
+          targetPomodoros: 4,
+          completedPomodoros: 1,
+          createdAt: Date.now(),
+        },
+      ],
+    });
+    render(<TasksList />);
+
+    const bar = screen.getByRole("progressbar", {
+      name: "Study React progress",
+    });
+    expect(bar).toHaveAttribute("aria-valuenow", "1");
+    expect(bar).toHaveAttribute("aria-valuemax", "4");
   });
 });
