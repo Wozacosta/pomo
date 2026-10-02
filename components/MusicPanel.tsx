@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { MusicIcon } from "./Icons";
 
 interface MusicLink {
   id: string;
@@ -109,10 +110,12 @@ export default function MusicPanel() {
       : links.filter((link) => link.category === selectedCategory);
 
   return (
-    <div className="h-full p-6 space-y-5">
-      <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-        Concentration Music
-      </h2>
+    <div className="h-full px-5 pb-6 space-y-4">
+      <div className="h-16 -mb-2 flex items-center">
+        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+          Concentration Music
+        </h2>
+      </div>
 
       {/* Category Filter */}
       <div className="flex gap-2 flex-wrap">
@@ -120,10 +123,11 @@ export default function MusicPanel() {
           <button
             key={category}
             onClick={() => setSelectedCategory(category)}
-            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+            aria-pressed={selectedCategory === category}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
               selectedCategory === category
-                ? "bg-blue-600 text-white shadow-md"
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                ? "bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900"
+                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
           >
             {category}
@@ -132,29 +136,46 @@ export default function MusicPanel() {
       </div>
 
       {/* Music Links */}
-      <div className="space-y-2">
+      <div className="space-y-1 -mx-2.5">
         {filteredLinks.map((link) => {
           const isCustom = link.id.startsWith("custom-");
           return (
-            <div key={link.id} className="flex items-center gap-2">
+            <div key={link.id} className="relative">
               <a
                 href={link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 block p-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all group"
+                className="flex items-center gap-3 p-2.5 pr-3 rounded-xl border border-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800/60 hover:border-zinc-200/80 dark:hover:border-zinc-800 transition-all group"
               >
-                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {link.title}
-                </div>
-                <div className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                  {link.category}
-                </div>
+                <span className="w-9 h-9 shrink-0 flex items-center justify-center rounded-lg bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/50 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <MusicIcon className="w-4 h-4" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                    {link.title}
+                  </span>
+                  <span className="block text-xs text-zinc-500 dark:text-zinc-400">
+                    {link.category}
+                  </span>
+                </span>
+                {!isCustom && (
+                  <svg
+                    aria-hidden
+                    className="w-4 h-4 shrink-0 text-zinc-300 dark:text-zinc-600 group-hover:text-zinc-500 dark:group-hover:text-zinc-400 transition-colors"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 17L17 7M9 7h8v8" />
+                  </svg>
+                )}
               </a>
               {isCustom && (
                 <button
                   onClick={() => deleteCustomLink(link.id)}
-                  className="p-2 text-zinc-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg text-zinc-400 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
                   title="Delete link"
+                  aria-label={`Delete ${link.title}`}
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -180,27 +201,27 @@ export default function MusicPanel() {
 
       {/* Add Custom Link */}
       {showAddForm ? (
-        <div className="p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 space-y-3">
+        <div className="p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 space-y-3">
           <input
             type="text"
             placeholder="Title"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="url"
             placeholder="URL (https://...)"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <input
             type="text"
             placeholder="Category (e.g., Radio, YouTube)"
             value={newCategory}
             onChange={(e) => setNewCategory(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {urlError && <p className="text-xs text-red-500">{urlError}</p>}
           <div className="flex gap-2">
@@ -248,7 +269,7 @@ export default function MusicPanel() {
       ) : (
         <button
           onClick={() => setShowAddForm(true)}
-          className="w-full p-3 border-2 border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:border-blue-600 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all"
+          className="w-full p-3 border border-dashed border-zinc-300 dark:border-zinc-700 rounded-xl text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:border-blue-600 dark:hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all"
         >
           + Add Custom Link
         </button>

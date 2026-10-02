@@ -10,6 +10,7 @@ import MobileNav from "@/components/MobileNav";
 import NavButton from "@/components/NavButton";
 import { useThemeStore } from "@/store/theme-store";
 import { useTimerWorker } from "@/hooks/useTimerWorker";
+import { MenuIcon, MoonIcon, SunIcon } from "@/components/Icons";
 import { View, MobileTab } from "@/types/navigation";
 
 // Height of mobile bottom nav (h-16 = 64px) - used for content padding
@@ -52,7 +53,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="flex h-dvh bg-zinc-50 dark:bg-zinc-950">
       {/* Left Sidebar - Desktop only */}
       <div className="hidden md:block">
         <Sidebar
@@ -62,33 +63,30 @@ export default function Home() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col bg-white dark:bg-zinc-900">
+      <div className="flex-1 min-w-0 flex flex-col bg-zinc-50 dark:bg-zinc-950">
         {/* Header with Navigation and Theme Toggle */}
-        <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 flex justify-between items-center shadow-sm">
-          <div className="flex items-center gap-4">
+        <header className="h-16 shrink-0 border-b border-zinc-200/80 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur px-4 flex justify-between items-center">
+          <div className="flex items-center gap-3">
             {/* Sidebar toggle - Desktop only */}
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              className="hidden md:block p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              className="hidden md:flex p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
               aria-label="Toggle sidebar"
             >
-              <svg
-                className="w-6 h-6 text-zinc-600 dark:text-zinc-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              <MenuIcon className="w-5 h-5" />
             </button>
 
+            {/* Brand */}
+            <div className="hidden sm:flex items-center gap-2 pr-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/icon.svg" alt="" className="w-6 h-6" />
+              <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+                Pomo
+              </span>
+            </div>
+
             {/* Desktop navigation */}
-            <nav className="hidden md:flex gap-2">
+            <nav className="hidden md:flex gap-1 p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
               <NavButton
                 active={currentView === "timer"}
                 onClick={() => setCurrentView("timer")}
@@ -105,7 +103,7 @@ export default function Home() {
 
             {/* Mobile: Timer/Report toggle when on timer tab */}
             {mobileTab === "timer" && (
-              <nav className="flex md:hidden gap-2">
+              <nav className="flex md:hidden gap-1 p-1 bg-zinc-100 dark:bg-zinc-800/80 rounded-xl">
                 <NavButton
                   active={currentView === "timer"}
                   onClick={() => setCurrentView("timer")}
@@ -131,37 +129,13 @@ export default function Home() {
 
           <button
             onClick={() => setTheme(theme === "light" ? "dark" : "light", true)}
-            className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+            className="p-2 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
             aria-label="Toggle theme"
           >
             {theme === "light" ? (
-              <svg
-                className="w-6 h-6 text-zinc-600 dark:text-zinc-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                />
-              </svg>
+              <MoonIcon className="w-5 h-5" />
             ) : (
-              <svg
-                className="w-6 h-6 text-zinc-600 dark:text-zinc-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                />
-              </svg>
+              <SunIcon className="w-5 h-5" />
             )}
           </button>
         </header>
@@ -171,7 +145,7 @@ export default function Home() {
           {/* Desktop: show based on currentView */}
           <div className="hidden md:block h-full">
             {currentView === "timer" ? (
-              <div className="flex items-center justify-center h-full">
+              <div className="flex items-center justify-center min-h-full">
                 <Timer />
               </div>
             ) : (
@@ -184,7 +158,7 @@ export default function Home() {
             {mobileTab === "timer" && (
               <>
                 {currentView === "timer" ? (
-                  <div className="flex items-center justify-center h-full">
+                  <div className="flex items-center justify-center min-h-full">
                     <Timer />
                   </div>
                 ) : (
@@ -193,7 +167,7 @@ export default function Home() {
               </>
             )}
             {mobileTab === "tasks" && (
-              <div className="h-full overflow-y-auto p-6 bg-white dark:bg-zinc-900">
+              <div className="h-full overflow-y-auto p-5">
                 <SidebarContent />
               </div>
             )}
@@ -207,9 +181,9 @@ export default function Home() {
       </div>
 
       {/* Right Panel - Desktop only */}
-      <div className="hidden md:block w-80 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-y-auto shadow-lg">
+      <aside className="hidden md:block w-72 lg:w-80 shrink-0 border-l border-zinc-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-y-auto">
         <MusicPanel />
-      </div>
+      </aside>
 
       {/* Mobile Bottom Navigation */}
       <MobileNav activeTab={mobileTab} onTabChange={handleMobileTabChange} />

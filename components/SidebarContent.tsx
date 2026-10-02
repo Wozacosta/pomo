@@ -55,32 +55,32 @@ export default function SidebarContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       {/* Stats */}
-      <div className="space-y-3">
-        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950 dark:to-blue-900 rounded-xl border border-blue-200 dark:border-blue-800 shadow-sm">
-          <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-1">
+      <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2 p-4 rounded-2xl bg-blue-600 text-white shadow-sm shadow-blue-600/20">
+          <div className="text-xs font-medium text-blue-100">
             Total Completed
           </div>
-          <div className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+          <div className="mt-1 text-3xl font-semibold tabular-nums tracking-tight">
             {totalCompleted}
           </div>
         </div>
 
-        <div className="p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950 dark:to-green-900 rounded-xl border border-green-200 dark:border-green-800 shadow-sm">
-          <div className="text-sm font-medium text-green-700 dark:text-green-300 mb-1">
+        <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800">
+          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
             Current Streak
           </div>
-          <div className="text-3xl font-bold text-green-900 dark:text-green-100">
+          <div className="mt-1 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
             {currentStreak} {currentStreak === 1 ? "day" : "days"}
           </div>
         </div>
 
-        <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 rounded-xl border border-purple-200 dark:border-purple-800 shadow-sm">
-          <div className="text-sm font-medium text-purple-700 dark:text-purple-300 mb-1">
+        <div className="p-3.5 rounded-2xl bg-zinc-50 dark:bg-zinc-800/60 border border-zinc-200/80 dark:border-zinc-800">
+          <div className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
             Longest Streak
           </div>
-          <div className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+          <div className="mt-1 text-xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
             {longestStreak} {longestStreak === 1 ? "day" : "days"}
           </div>
         </div>
@@ -91,10 +91,10 @@ export default function SidebarContent() {
 
       {/* Sound Settings */}
       <div>
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Sound Settings
         </h3>
-        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-800">
           {/* Master Mute Toggle */}
           <div className="flex items-center justify-between">
             <label
@@ -153,7 +153,7 @@ export default function SidebarContent() {
                 }
               }}
               disabled={!soundEnabled}
-              className="px-3 py-1.5 text-sm bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg text-zinc-900 dark:text-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-2.5 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="jingle">Jingle</option>
               <option value="birds">Birds</option>
@@ -181,7 +181,7 @@ export default function SidebarContent() {
                 }
               }}
               disabled={!soundEnabled}
-              className="px-3 py-1.5 text-sm bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg text-zinc-900 dark:text-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-2.5 py-1.5 text-sm bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="click">Click</option>
               <option value="none">None</option>
@@ -192,10 +192,10 @@ export default function SidebarContent() {
 
       {/* Quote Settings */}
       <div>
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Motivational Quotes
         </h3>
-        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-800">
           <div className="flex items-center justify-between">
             <label
               htmlFor="quotes-enabled-toggle"
@@ -233,20 +233,20 @@ export default function SidebarContent() {
 
       {/* Data Management */}
       <div>
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Data
         </h3>
-        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div className="space-y-3 p-4 bg-zinc-50 dark:bg-zinc-800/60 rounded-2xl border border-zinc-200/80 dark:border-zinc-800">
           <div className="flex gap-2">
             <button
               onClick={exportData}
-              className="flex-1 px-3 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors"
+              className="flex-1 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
               Export
             </button>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-700 border border-zinc-300 dark:border-zinc-600 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-600 transition-colors"
+              className="flex-1 px-3 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-white dark:bg-zinc-900 border border-zinc-300 dark:border-zinc-700 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
             >
               Import
             </button>
@@ -274,33 +274,45 @@ export default function SidebarContent() {
 
       {/* Recent Sessions */}
       <div>
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3">
+        <h3 className="mb-2.5 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Recent Sessions
         </h3>
-        <div className="space-y-2">
-          {sessions
-            .slice(-5)
-            .reverse()
-            .map((session) => (
-              <div
-                key={session.id}
-                className="p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg text-sm border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors"
-              >
-                <div className="font-medium text-zinc-900 dark:text-zinc-50 mb-1">
-                  {new Date(session.startTime).toLocaleTimeString()}
-                </div>
-                <div className="text-zinc-600 dark:text-zinc-400 text-xs">
-                  {session.duration} min • {session.subject || "No task"} •{" "}
-                  {session.completed ? "✓ Completed" : "Incomplete"}
-                </div>
-              </div>
-            ))}
-          {sessions.length === 0 && (
-            <div className="p-4 text-sm text-zinc-500 dark:text-zinc-500 text-center bg-zinc-50 dark:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
-              No sessions yet
-            </div>
-          )}
-        </div>
+        {sessions.length > 0 ? (
+          <ul className="divide-y divide-zinc-200/80 dark:divide-zinc-800 rounded-2xl border border-zinc-200/80 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-800/60 overflow-hidden">
+            {sessions
+              .slice(-5)
+              .reverse()
+              .map((session) => (
+                <li
+                  key={session.id}
+                  className="flex items-center gap-3 px-3.5 py-2.5 text-sm"
+                >
+                  <span
+                    className={`w-1.5 h-1.5 shrink-0 rounded-full ${
+                      session.completed ? "bg-green-500" : "bg-zinc-400"
+                    }`}
+                  />
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium text-zinc-900 dark:text-zinc-50">
+                      {session.subject || "No task"}
+                    </div>
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {new Date(session.startTime).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}{" "}
+                      • {session.duration} min •{" "}
+                      {session.completed ? "✓ Completed" : "Incomplete"}
+                    </div>
+                  </div>
+                </li>
+              ))}
+          </ul>
+        ) : (
+          <div className="p-4 text-sm text-zinc-500 dark:text-zinc-400 text-center rounded-2xl border border-dashed border-zinc-300 dark:border-zinc-700">
+            No sessions yet
+          </div>
+        )}
       </div>
     </div>
   );

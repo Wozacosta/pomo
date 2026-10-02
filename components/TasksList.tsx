@@ -143,10 +143,10 @@ export default function TasksList() {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
           Tasks
           {tasks.length > 0 && (
-            <span className="ml-2 text-xs font-medium text-zinc-500 dark:text-zinc-500">
+            <span className="ml-1.5 tabular-nums text-zinc-400 dark:text-zinc-500">
               {tasks.length}
             </span>
           )}
@@ -155,7 +155,7 @@ export default function TasksList() {
           onClick={() => (isAdding ? closeAddForm() : setIsAdding(true))}
           aria-label={isAdding ? 'Close new task form' : 'Add task'}
           aria-expanded={isAdding}
-          className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors group"
+          className="-my-1 p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors group"
         >
           <svg
             className={`w-5 h-5 text-zinc-600 dark:text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-50 transition-transform ${isAdding ? 'rotate-45' : ''}`}
@@ -169,7 +169,7 @@ export default function TasksList() {
       </div>
 
       {isAdding && (
-        <div className="p-3 space-y-3 bg-zinc-50 dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700">
+        <div className="p-3 space-y-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200/80 dark:border-zinc-800">
           <input
             type="text"
             value={newTaskName}
@@ -263,7 +263,7 @@ export default function TasksList() {
               className={`group p-3 rounded-xl border transition-all ${
                 isCurrent
                   ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-700 ring-2 ring-blue-500 shadow-sm'
-                  : 'bg-zinc-50 dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600'
+                  : 'bg-zinc-50 dark:bg-zinc-800/60 border-zinc-200/80 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
               }`}
             >
               <div className="flex items-center gap-3">

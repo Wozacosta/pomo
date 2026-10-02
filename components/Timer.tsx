@@ -4,6 +4,43 @@ import { useEffect, useState, useRef } from "react";
 import { useTimerStore } from "@/store/timer-store";
 import { playClickSound as playClick } from "@/lib/sounds";
 import { formatTime } from "@/lib/timer-utils";
+import { EditIcon } from "./Icons";
+
+type TimerType = "work" | "shortBreak" | "longBreak";
+
+const MODE_LABELS: Record<TimerType, string> = {
+  work: "Pomodoro",
+  shortBreak: "Short Break",
+  longBreak: "Long Break",
+};
+
+// Full class names so Tailwind can detect them
+const MODE_STYLES: Record<
+  TimerType,
+  { text: string; ring: string; glow: string; dot: string; button: string }
+> = {
+  work: {
+    text: "text-blue-600 dark:text-blue-400",
+    ring: "text-blue-600 dark:text-blue-400",
+    glow: "bg-blue-500",
+    dot: "bg-blue-500",
+    button: "bg-blue-600 hover:bg-blue-700 shadow-blue-600/25",
+  },
+  shortBreak: {
+    text: "text-emerald-600 dark:text-emerald-400",
+    ring: "text-emerald-500 dark:text-emerald-400",
+    glow: "bg-emerald-500",
+    dot: "bg-emerald-500",
+    button: "bg-emerald-600 hover:bg-emerald-700 shadow-emerald-600/25",
+  },
+  longBreak: {
+    text: "text-violet-600 dark:text-violet-400",
+    ring: "text-violet-500 dark:text-violet-400",
+    glow: "bg-violet-500",
+    dot: "bg-violet-500",
+    button: "bg-violet-600 hover:bg-violet-700 shadow-violet-600/25",
+  },
+};
 
 interface MotivationalQuote {
   text: string;
@@ -189,43 +226,57 @@ export default function Timer() {
     }
   };
 
+  const accent = MODE_STYLES[timerType];
+  const statusLabel = isPaused
+    ? "Paused"
+    : isRunning
+      ? timerType === "work"
+        ? "Focusing"
+        : "On a break"
+      : MODE_LABELS[timerType];
+
   return (
-    <div className="flex flex-col items-center justify-center space-y-8 p-8">
+    <div className="flex flex-col items-center justify-center gap-8 px-6 py-10 w-full max-w-md">
       {/* Timer Type Selection */}
-      <div className="flex gap-2 bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl">
+      <div
+        role="group"
+        aria-label="Timer mode"
+        className="grid grid-cols-3 gap-1 w-full bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-2xl"
+      >
         {(["work", "shortBreak", "longBreak"] as const).map((type) => (
           <button
             key={type}
             onClick={() => {
               setTimerType(type);
             }}
-            className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${
+            aria-pressed={timerType === type}
+            className={`px-3 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
               timerType === type
-                ? "bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-md"
-                : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-200"
+                ? `bg-white dark:bg-zinc-700 shadow-sm ${MODE_STYLES[type].text}`
+                : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
             }`}
           >
-            {type === "work"
-              ? "Pomodoro"
-              : type === "shortBreak"
-                ? "Short Break"
-                : "Long Break"}
+            {MODE_LABELS[type]}
           </button>
         ))}
       </div>
 
       {/* Circular Progress */}
       <div className="relative w-72 h-72">
-        <svg className="transform -rotate-90 w-72 h-72 drop-shadow-lg">
+        <div
+          aria-hidden
+          className={`absolute inset-8 rounded-full blur-3xl opacity-20 dark:opacity-25 transition-colors duration-500 ${accent.glow}`}
+        />
+        <svg className="relative transform -rotate-90 w-72 h-72">
           {/* Background circle */}
           <circle
             cx="144"
             cy="144"
             r="135"
             stroke="currentColor"
-            strokeWidth="10"
+            strokeWidth="8"
             fill="none"
-            className="text-zinc-200 dark:text-zinc-800"
+            className="text-zinc-200/80 dark:text-zinc-800"
           />
           {/* Progress circle */}
           <circle
@@ -233,27 +284,39 @@ export default function Timer() {
             cy="144"
             r="135"
             stroke="currentColor"
-            strokeWidth="10"
+            strokeWidth="8"
             fill="none"
             strokeDasharray={`${2 * Math.PI * 135}`}
             strokeDashoffset={`${2 * Math.PI * 135 * (1 - progress / 100)}`}
-            className="text-blue-600 dark:text-blue-400 transition-all duration-1000 ease-linear drop-shadow-md"
+            className={`${accent.ring} transition-all duration-1000 ease-linear`}
             strokeLinecap="round"
           />
         </svg>
 
         {/* Time Display */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-6xl font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
+          <div
+            className={`text-xs font-semibold uppercase tracking-[0.2em] ${
+              isRunning && !isPaused ? accent.text : "text-zinc-400 dark:text-zinc-500"
+            } transition-colors`}
+          >
+            {statusLabel}
+          </div>
+          <div className="text-7xl font-semibold tabular-nums tracking-tight text-zinc-900 dark:text-zinc-50">
             {formatTime(currentTime)}
           </div>
+          {completedSessionsCount > 0 && (
+            <div className="text-sm font-medium tabular-nums text-zinc-400 dark:text-zinc-500">
+              #{completedSessionsCount}
+            </div>
+          )}
         </div>
       </div>
 
       {/* Current Task/Session Info */}
-      <div className="text-center space-y-2 min-w-[300px]">
+      <div className="w-full flex justify-center min-h-[52px]">
         {isEditingTask ? (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full">
             <input
               type="text"
               value={taskInput}
@@ -266,86 +329,76 @@ export default function Timer() {
                 }
               }}
               placeholder="What are you focusing on?"
-              className="flex-1 px-4 py-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+              className="flex-1 min-w-0 px-4 py-2.5 bg-white dark:bg-zinc-800 border border-zinc-300 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-50 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
               autoFocus
             />
             <button
               onClick={handleTaskSubmit}
-              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-all shadow-md active:scale-95"
+              className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-all shadow-sm active:scale-95"
             >
               Save
             </button>
           </div>
-        ) : (
-          <div className="space-y-2">
-            {completedSessionsCount > 0 && (
-              <div className="text-sm font-medium text-zinc-500 dark:text-zinc-500">
-                #{completedSessionsCount}
-              </div>
-            )}
-            {currentTaskName ? (
-              <>
-                <div className="text-xl font-semibold text-zinc-900 dark:text-zinc-50 px-4 py-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl inline-block">
-                  {currentTaskName}
-                </div>
-                <div>
-                  <button
-                    onClick={() => {
-                      setIsEditingTask(true);
-                      setTaskInput(currentTaskName);
-                    }}
-                    className="text-xs text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors"
-                  >
-                    Edit
-                  </button>
-                </div>
-              </>
-            ) : (
-              <button
-                onClick={() => setIsEditingTask(true)}
-                className="text-sm text-zinc-500 dark:text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300 transition-colors px-4 py-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl"
-              >
-                + Add focus task
-              </button>
-            )}
+        ) : currentTaskName ? (
+          <div className="flex items-center gap-1 max-w-full pl-4 pr-1 py-1 bg-zinc-100 dark:bg-zinc-800 rounded-full">
+            <span className={`w-2 h-2 shrink-0 rounded-full ${accent.dot}`} />
+            <span className="ml-1.5 truncate text-base font-semibold text-zinc-900 dark:text-zinc-50">
+              {currentTaskName}
+            </span>
+            <button
+              onClick={() => {
+                setIsEditingTask(true);
+                setTaskInput(currentTaskName);
+              }}
+              aria-label="Edit"
+              title="Change focus task"
+              className="ml-1 p-2 rounded-full text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            >
+              <EditIcon className="w-3.5 h-3.5" />
+            </button>
           </div>
+        ) : (
+          <button
+            onClick={() => setIsEditingTask(true)}
+            className="text-sm font-medium text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors px-4 py-2 border border-dashed border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-500 rounded-full"
+          >
+            + Add focus task
+          </button>
         )}
       </div>
 
       {/* Controls */}
-      <div className="flex gap-3">
-        {!isRunning ? (
+      <div className="flex flex-col items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
-            onClick={handleStart}
-            className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl active:scale-95"
+            onClick={!isRunning ? handleStart : isPaused ? resumeTimer : pauseTimer}
+            className={`min-w-40 px-10 py-3.5 text-white rounded-full text-base font-semibold transition-all shadow-lg active:scale-95 ${accent.button}`}
           >
-            Start
+            {!isRunning ? "Start" : isPaused ? "Resume" : "Pause"}
           </button>
-        ) : (
           <button
-            onClick={isPaused ? resumeTimer : pauseTimer}
-            className="px-10 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg hover:shadow-xl active:scale-95"
+            onClick={resetTimer}
+            className="px-6 py-3.5 rounded-full text-base font-semibold text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all active:scale-95"
           >
-            {isPaused ? "Resume" : "Pause"}
+            Reset
           </button>
-        )}
-
-        <button
-          onClick={resetTimer}
-          className="px-10 py-3 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-50 rounded-xl font-semibold transition-all shadow-md hover:shadow-lg active:scale-95"
-        >
-          Reset
-        </button>
+        </div>
+        <p className="hidden md:block text-xs text-zinc-400 dark:text-zinc-500">
+          <kbd className="px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 font-sans">Space</kbd>{" "}
+          start / pause ·{" "}
+          <kbd className="px-1.5 py-0.5 rounded border border-zinc-200 dark:border-zinc-700 font-sans">R</kbd>{" "}
+          reset
+        </p>
       </div>
 
       {/* Motivational Quote Modal */}
       {showQuote && (
         <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-zinc-950/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={() => setShowQuote(false)}
         >
           <div
-            className="bg-white dark:bg-zinc-800 rounded-2xl p-8 max-w-md w-full shadow-2xl animate-in fade-in zoom-in duration-300"
+            className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-3xl p-8 max-w-md w-full shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="text-center space-y-4">
@@ -354,14 +407,14 @@ export default function Timer() {
                 Great work!
               </h3>
               <blockquote className="text-lg text-zinc-700 dark:text-zinc-300 italic">
-                "{currentQuote.text}"
+                &ldquo;{currentQuote.text}&rdquo;
               </blockquote>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
                 — {currentQuote.author}
               </p>
               <button
                 onClick={() => setShowQuote(false)}
-                className="mt-4 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all shadow-md active:scale-95"
+                className="mt-4 px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-semibold transition-all shadow-sm active:scale-95"
               >
                 Continue
               </button>
